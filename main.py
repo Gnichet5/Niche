@@ -2,6 +2,7 @@ import os
 import asyncio
 import inspect
 import uuid
+import logging
 import chromadb
 import speech_recognition as sr
 import google.generativeai as genai
@@ -11,9 +12,24 @@ import tools
 from PIL import ImageGrab
 from dotenv import load_dotenv
 
+# CONFIGURAÇÃO DE LOGS PROFISSIONAIS
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
 # 1. CONFIGURAÇÃO INICIAL
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    logging.critical("A chave GEMINI_API_KEY não foi encontrada no arquivo .env!")
+    exit(1)
+
+genai.configure(api_key=api_key)
 pygame.mixer.init()
 
 system_instruction = """
@@ -27,18 +43,18 @@ Mantenha um tom de inteligência artificial avançada e perspicaz. Não use emoj
 # =================================================================
 # 2. SISTEMA DE MEMÓRIA SEMÂNTICA (CHROMADB)
 # =================================================================
-print("\n[Sistema] Inicializando Córtex Vetorial (ChromaDB)...")
+logging.info("Inicializando Córtex Vetorial (ChromaDB)...")
+colecao_memoria = None
 try:
-    # Cria uma pasta local chamada "memoria_jarvis_db" no seu SSD para persistir os dados
     chroma_client = chromadb.PersistentClient(path="./memoria_jarvis_db")
     colecao_memoria = chroma_client.get_or_create_collection(name="historico_conversas")
-    print(f"[Sistema] Memória carregada. Lembranças armazenadas: {colecao_memoria.count()}")
+    logging.info(f"Memória carregada com sucesso. Lembranças armazenadas: {colecao_memoria.count()}")
 except Exception as e:
-    print(f"[Erro] Falha ao iniciar memória vetorial: {e}")
+    logging.error(f"Falha ao iniciar memória vetorial: {e}", exc_info=True)
 
 def salvar_memoria_vetorial(pergunta, resposta):
-    """Vetoriza e salva a interação no banco de dados local."""
-    if not pergunta or not resposta: return
+    if not pergunta or not resposta or not colecao_memoria: 
+        return
     documento = f"Usuário disse: {pergunta} | JARVIS respondeu: {resposta}"
     try:
         colecao_memoria.add(
@@ -47,12 +63,11 @@ def salvar_memoria_vetorial(pergunta, resposta):
             ids=[str(uuid.uuid4())]
         )
     except Exception as e:
-        print(f"[Aviso] Não foi possível salvar a memória: {e}")
+        logging.warning(f"Não foi possível salvar a memória: {e}")
 
 def buscar_contexto_vetorial(pergunta_atual, max_resultados=2):
-    """Busca as memórias passadas mais relevantes para o comando atual."""
     try:
-        if colecao_memoria.count() == 0: 
+        if not colecao_memoria or colecao_memoria.count() == 0: 
             return ""
             
         resultados = colecao_memoria.query(
@@ -63,37 +78,58 @@ def buscar_contexto_vetorial(pergunta_atual, max_resultados=2):
         if resultados['documents'] and resultados['documents'][0]:
             contexto = " | ".join(resultados['documents'][0])
             return f"\n\n[INFORMAÇÃO OCULTA DE SISTEMA - CONTEXTO DO PASSADO: {contexto}]"
-    except Exception:
-        pass
+    except Exception as e:
+        logging.debug(f"Erro ao buscar contexto vetorial: {e}")
     return ""
 
 # =================================================================
-# 3. SISTEMA DE AUTO-DETECÇÃO DE MODELO
+# 3. SISTEMA DE AUTO-DETECÇÃO DINÂMICA DE MODELO
 # =================================================================
+logging.info("Analisando modelos disponíveis na API do Gemini...")
+modelo_escolhido = None
+
 try:
-    modelos_disponiveis = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    preferencias = [
-        "models/gemini-1.5-pro-002", "models/gemini-1.5-pro-latest", "models/gemini-1.5-pro",
-        "models/gemini-1.5-flash-002", "models/gemini-1.5-flash-latest", "models/gemini-1.5-flash"
-    ]
-    modelo_escolhido = next((pref for pref in preferencias if pref in modelos_disponiveis), "gemini-1.5-pro")
-    print(f"[Sistema] Acesso concedido ao modelo: {modelo_escolhido}")
-except Exception:
-    modelo_escolhido = "models/gemini-1.5-pro-latest"
+    modelos_compativeis = []
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            modelos_compativeis.append(m.name)
+            logging.info(f"[API] Modelo compatível detectado: {m.name}")
+    preferencias = ["gemini-1.5-flash", "gemini-1.5-pro", "flash", "pro"]
+    
+    for pref in preferencias:
+        encontrado = next((mod for mod in modelos_compativeis if pref in mod), None)
+        if encontrado:
+            modelo_escolhido = encontrado
+            break
+    if not modelo_escolhido and modelos_compativeis:
+        modelo_escolhido = modelos_compativeis[0]
+        
+    # Fallback de segurança absoluto caso a listagem falhe
+    if not modelo_escolhido:
+        modelo_escolhido = "models/gemini-1.5-flash"
+        
+    logging.info(f"Modelo final selecionado com sucesso: {modelo_escolhido}")
+except Exception as e:
+    logging.warning(f"Erro ao listar modelos dinamicamente: {e}. Usando fallback.")
+    modelo_escolhido = "models/gemini-1.5-flash"
 
 # =================================================================
 # 4. ABSORÇÃO DINÂMICA DE SKILLS (REFLECTION)
 # =================================================================
-print("[Sistema] Absorvendo skills locais...")
+logging.info("Absorvendo skills locais do tools.py...")
 skills_do_jarvis = [func for _, func in inspect.getmembers(tools, inspect.isfunction) if func.__module__ == tools.__name__]
-print(f"[Sistema] {len(skills_do_jarvis)} skills carregadas.")
+logging.info(f"{len(skills_do_jarvis)} skills carregadas com sucesso.")
 
-model = genai.GenerativeModel(
-    model_name=modelo_escolhido,
-    system_instruction=system_instruction,
-    tools=skills_do_jarvis
-)
-chat = model.start_chat(enable_automatic_function_calling=True)
+try:
+    model = genai.GenerativeModel(
+        model_name=modelo_escolhido,
+        system_instruction=system_instruction,
+        tools=skills_do_jarvis
+    )
+    chat = model.start_chat(enable_automatic_function_calling=True)
+except Exception as e:
+    logging.critical(f"Erro fatal ao instanciar o modelo do Gemini: {e}", exc_info=True)
+    exit(1)
 
 # =================================================================
 # 5. FUNÇÕES DE ÁUDIO E MICROFONE
@@ -103,16 +139,18 @@ async def generate_audio(text, filename="resposta.mp3"):
     await communicate.save(filename)
 
 def speak(text):
-    print(f"\nJARVIS: {text}")
-    asyncio.run(generate_audio(text))
-    pygame.mixer.music.load("resposta.mp3")
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
-    pygame.mixer.music.unload()
-    if os.path.exists("resposta.mp3"):
-        try: os.remove("resposta.mp3")
-        except: pass
+    logging.info(f"JARVIS: {text}")
+    try:
+        asyncio.run(generate_audio(text))
+        pygame.mixer.music.load("resposta.mp3")
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+        pygame.mixer.music.unload()
+        if os.path.exists("resposta.mp3"):
+            os.remove("resposta.mp3")
+    except Exception as e:
+        logging.error(f"Erro no sistema de voz/áudio: {e}")
 
 def listen_command():
     recognizer = sr.Recognizer()
@@ -122,12 +160,12 @@ def listen_command():
         try:
             audio = recognizer.listen(source, timeout=5, phrase_time_limit=15)
             text = recognizer.recognize_google(audio, language="pt-BR")
-            print(f"Você (Voz): {text}")
+            logging.info(f"Usuário (Voz): {text}")
             return text
         except (sr.WaitTimeoutError, sr.UnknownValueError):
             return None
         except Exception as e:
-            print(f"Erro no microfone: {e}")
+            logging.error(f"Erro crítico no microfone: {e}")
             return None
 
 # =================================================================
@@ -139,7 +177,7 @@ def main():
     print(" SISTEMA JARVIS INICIADO ".center(40, "="))
     print("="*40)
     
-    speak("Sistemas online e banco de memória vetorial ativo, parceria.")
+    speak("Sistemas online e monitoramento por logs ativo, parceria.")
     gatilhos_visao = ["tela", "olhe", "veja", "isso", "print", "erro", "código"]
 
     while True:
@@ -156,11 +194,12 @@ def main():
             break
             
         try:
-            # Resgata o contexto relevante do ChromaDB
             info_oculta = buscar_contexto_vetorial(user_input)
             comando_enriquecido = user_input + info_oculta
             
             precisa_ver = any(palavra in user_input.lower() for palavra in gatilhos_visao)
+            
+            logging.info(f"Processando comando: '{user_input}' (Visão ativa: {precisa_ver})")
             
             if precisa_ver:
                 print("[Capturando imagem da tela...]")
@@ -177,12 +216,11 @@ def main():
             clean_text = texto_resposta.replace("*", "").replace("#", "")
             speak(clean_text)
             
-            # Salva a nova memória no final da interação
             salvar_memoria_vetorial(user_input, clean_text)
             
         except Exception as e:
+            logging.error(f"Falha de processamento neural no loop principal: {e}", exc_info=True)
             speak("Falha de processamento neural.")
-            print(f"Detalhe do Erro: {e}")
 
 if __name__ == "__main__":
     main()

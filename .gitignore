@@ -1,24 +1,14 @@
-# Chaves de API e Variáveis de Ambiente (CRÍTICO)
+
 .env
-
-# Banco de Dados Vetorial Local
 memoria_jarvis_db/
-
-# Ambientes Virtuais do Python
 venv/
 env/
 .venv/
-
-# Arquivos temporários de mídia
 resposta.mp3
 *.mp3
-
-# Cache do Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Configurações de IDE (VS Code, etc)
 .vscode/
 .idea/
