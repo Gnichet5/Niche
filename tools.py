@@ -17,6 +17,7 @@ import time
 import subprocess
 from datetime import datetime
 import shutil
+import sys
 
 colecao_memoria_global = None
 os.makedirs("logs_sistema", exist_ok=True)
@@ -777,9 +778,10 @@ def orquestrar_ambiente(cenario: str) -> str:
 
 def executar_comando_terminal(comando: str) -> str:
     """
-    Executa um comando diretamente no terminal/prompt do sistema operacional.
-    O JARVIS pode usar isso para instalar pacotes (pip install), verificar processos,
-    ou rodar scripts. Requer aprovação manual do usuário antes de rodar.
+    Executa comandos de INFRAESTRUTURA no terminal (ex: pip install, ping, tasklist).
+    PROIBIDO: Não utilize esta ferramenta para executar ou testar scripts Python (.py).
+    Para rodar código Python local, utilize EXCLUSIVAMENTE a ferramenta 'testar_script_python'.
+    Requer aprovação manual do usuário antes de rodar.
     Inclui proteção anti-rebote.
     """
     # NOVA LINHA: Evita que o fallback do Gemini rode o mesmo comando 2x seguidas
@@ -1077,3 +1079,49 @@ def gerenciar_memoria_codigo(acao: str, chave: str = "", conteudo: str = "") -> 
             return "Toda a memória de contexto temporária foi apagada."
     else:
         return "Ação inválida. Use uma das opções: 'salvar', 'consultar', 'listar' ou 'limpar'."
+    
+def testar_script_python(caminho_relativo: str) -> str:
+    """
+    A ÚNICA ferramenta permitida para executar, testar e debugar scripts Python.
+    Executa o script dentro da sandbox e captura a saída ou o erro (Traceback).
+    OBRIGATÓRIO usar esta ferramenta para TDD (Test-Driven Development) e Auto-Cura.
+    """
+    if _anti_rebote(f"testar_{caminho_relativo}", cooldown_segundos=10):
+        return "Ação ignorada: O teste já foi disparado na tentativa anterior."
+    
+    try:
+        caminho_seguro = _caminho_sandbox(caminho_relativo)
+    except (PermissionError, FileNotFoundError) as e:
+        return str(e)
+        
+    # Human-in-the-Loop
+    print("\n" + "*" * 60)
+    print(" ALERTA: EXECUÇÃO DE TESTE DE CÓDIGO (AUTO-CURA) ".center(60, " "))
+    print("*" * 60)
+    print(f"Alvo: {caminho_seguro}")
+    print("-" * 60)
+    
+    confirmacao = input("Permitir execução do script para teste? (S/N): ").strip().lower()
+    if confirmacao != 's':
+        logging.warning("Teste de código bloqueado pelo usuário.")
+        return "Acesso negado: Teste cancelado pelo usuário."
+        
+    logging.info(f"Executando teste no script: {caminho_seguro}")
+    try:
+        # Roda o script usando o mesmo executável Python do sistema
+        resultado = subprocess.run([sys.executable, caminho_seguro], capture_output=True, text=True, timeout=15)
+        
+        saida_padrao = resultado.stdout.strip()
+        saida_erro = resultado.stderr.strip()
+        
+        if resultado.returncode == 0:
+            return f"✅ TESTE BEM-SUCEDIDO!\nSaída:\n{saida_padrao}"
+        else:
+            # O pulo do gato: A IA recebe uma instrução de correção junto com o erro
+            return f"❌ FALHA NO TESTE (Código {resultado.returncode}).\nTraceback:\n{saida_erro}\n\n[INSTRUÇÃO PARA IA]: Analise o Traceback acima, utilize a ferramenta 'editar_arquivo' para corrigir a falha e chame 'testar_script_python' novamente até o teste passar."
+            
+    except subprocess.TimeoutExpired:
+        logging.error(f"Erro: O script '{caminho_seguro}' entrou em loop infinito ou demorou demais.")
+        return "⏱️ ERRO: O script demorou mais de 15 segundos e foi interrompido. Verifique se há loops infinitos ou esperas de input (I/O bloqueante)."
+    except Exception as e:
+        return f"⚠️ Erro inesperado ao tentar rodar o teste: {e}"
