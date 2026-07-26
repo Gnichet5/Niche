@@ -102,3 +102,73 @@ index: 0
 
 2026-07-26 12:12:00,859 - INFO - JARVIS (Voz): Falha de processamento neural.
 2026-07-26 12:12:02,087 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-07-26 12:12:23,364 - INFO - Ligando Córtex Vetorial (ChromaDB)...
+2026-07-26 12:12:23,395 - INFO - [Sync] Puxando backup da Nuvem (G:\My Drive\MemóriasChromaDB) para o SSD...
+2026-07-26 12:15:28,177 - INFO - [Sync] Download concluído (1 arquivo(s) atualizados). Sistema rodando localmente.
+2026-07-26 12:15:28,630 - INFO - ✅ CÓRTEX VETORIAL ONLINE! (Lendo do SSD físico)
+2026-07-26 12:15:28,631 - INFO - Analisando modelos disponíveis na API do Gemini...
+2026-07-26 12:15:29,134 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash
+2026-07-26 12:15:29,134 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro
+2026-07-26 12:15:29,135 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash
+2026-07-26 12:15:29,135 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-001
+2026-07-26 12:15:29,135 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite-001
+2026-07-26 12:15:29,135 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite
+2026-07-26 12:15:29,135 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-preview-tts
+2026-07-26 12:15:29,136 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro-preview-tts
+2026-07-26 12:15:29,136 - INFO - [API] Modelo compatível detectado: models/gemma-4-26b-a4b-it
+2026-07-26 12:15:29,136 - INFO - [API] Modelo compatível detectado: models/gemma-4-31b-it
+2026-07-26 12:15:29,136 - INFO - [API] Modelo compatível detectado: models/gemini-flash-latest
+2026-07-26 12:15:29,136 - INFO - [API] Modelo compatível detectado: models/gemini-flash-lite-latest
+2026-07-26 12:15:29,136 - INFO - [API] Modelo compatível detectado: models/gemini-pro-latest
+2026-07-26 12:15:29,137 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-lite
+2026-07-26 12:15:29,137 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-image
+2026-07-26 12:15:29,137 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-preview
+2026-07-26 12:15:29,137 - INFO - [API] Modelo compatível detectado: models/gemini-3-flash-preview
+2026-07-26 12:15:29,137 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview
+2026-07-26 12:15:29,137 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview-customtools
+2026-07-26 12:15:29,138 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-preview
+2026-07-26 12:15:29,138 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite
+2026-07-26 12:15:29,138 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image-preview
+2026-07-26 12:15:29,138 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image
+2026-07-26 12:15:29,138 - INFO - [API] Modelo compatível detectado: models/nano-banana-pro-preview
+2026-07-26 12:15:29,138 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image-preview
+2026-07-26 12:15:29,139 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image
+2026-07-26 12:15:29,139 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-image
+2026-07-26 12:15:29,139 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash-lite
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/gemini-omni-flash-preview
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/gemini-3.6-flash
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/lyria-3-clip-preview
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/lyria-3-pro-preview
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-tts-preview
+2026-07-26 12:15:29,140 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.5-preview
+2026-07-26 12:15:29,141 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.6-preview
+2026-07-26 12:15:29,141 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-computer-use-preview-10-2025
+2026-07-26 12:15:29,141 - INFO - [API] Modelo compatível detectado: models/antigravity-preview-05-2026
+2026-07-26 12:15:29,142 - INFO - [API] Modelo compatível detectado: models/deep-research-max-preview-04-2026
+2026-07-26 12:15:29,142 - INFO - [API] Modelo compatível detectado: models/deep-research-preview-04-2026
+2026-07-26 12:15:29,142 - INFO - [API] Modelo compatível detectado: models/deep-research-pro-preview-12-2025
+2026-07-26 12:15:29,769 - INFO - Modelo final selecionado com sucesso: models/gemini-3.5-flash
+2026-07-26 12:15:29,769 - INFO - Absorvendo skills locais do tools.py...
+2026-07-26 12:15:29,769 - INFO - 26 skills carregadas com sucesso.
+2026-07-26 12:15:29,887 - INFO - JARVIS (Voz): Sistemas online e monitoramento por logs ativo, parceria.
+2026-07-26 12:15:45,728 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-07-26 12:15:45,728 - INFO - [RASTREAMENTO] Passo 2: Buscando 'você comentou sobre esses pontos quando perguntei sobre melhora: Diagnosticar erros ou padrões em logs: Ir além da leitura para identificar problemas em tempo real.Analisar e sugerir otimizações em código: Compreender a estrutura de um script e apontar melhorias ou refatorações.Extrair informações complexas de documentos: Processar textos longos para resumos executivos ou dados específicos. Desafio aceito. Como você agora possui a capacidade de alterar seus próprios arquivos, quero que você mesmo desenvolva essas três capacidades. Escreva as funções Python para diagnóstico de logs, otimização de código e extração de dados. Tenho apenas uma exigência arquitetural: você deve manter a organização impecável do código. Crie um novo bloco seguindo o padrão de comentários já existente (por exemplo, definindo um # SETOR 9: ANÁLISE E INTELIGÊNCIA) para agrupar essas novas ferramentas de forma limpa. Assim que o código estiver estruturado, utilize sua ferramenta de edição ou adição de arquivos para injetar essas novas funções diretamente no nosso arquivo tools.py. O sistema de segurança pedirá minha aprovação. Mostre do que é capaz e aprimore-se.' na Memória Vetorial (ChromaDB)...
+2026-07-26 12:15:45,760 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-07-26 12:15:46,408 - INFO - [Córtex] Resgatou 2 lembrança(s).
+2026-07-26 12:15:46,408 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-07-26 12:15:46,408 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=True)...
+2026-07-26 12:15:46,408 - INFO - [RASTREAMENTO] Passo 4.1: Tirando print da tela (ImageGrab)...
+2026-07-26 12:15:46,455 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-07-26 12:16:07,908 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-3.5-flash. Pulando para o próximo...
+2026-07-26 12:16:07,909 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-2.5-flash...
+2026-07-26 12:16:15,939 - INFO - Arquivo 'tools.py' lido com sucesso.
+2026-07-26 12:16:34,667 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-2.5-flash. Pulando para o próximo...
+2026-07-26 12:16:34,667 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-pro-latest...
+2026-07-26 12:16:55,772 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-pro-latest. Pulando para o próximo...
+2026-07-26 12:16:55,773 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-flash-latest...
+2026-07-26 12:17:00,818 - INFO - Arquivo 'tools.py' lido com sucesso.
+2026-07-26 12:41:44,909 - INFO - Conteúdo adicionado com sucesso em 'tools.py'.
+2026-07-26 12:42:04,914 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-flash-latest. Pulando para o próximo...
+2026-07-26 12:42:04,914 - ERROR - [Gemini] API indisponível ou sobrecarregada (alta demanda): 504 Deadline Exceeded
+2026-07-26 12:42:04,914 - INFO - JARVIS (Voz): A API do Gemini está sobrecarregada no momento. Tente novamente em instantes.

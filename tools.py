@@ -21,6 +21,7 @@ import shutil
 colecao_memoria_global = None
 os.makedirs("logs_sistema", exist_ok=True)
 arquivo_log = os.path.join("logs_sistema", "jarvis_tools.log")
+_MEMORIA_DE_CODIGO = {}
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -1034,3 +1035,45 @@ def extrair_informacoes_documento(caminho_documento: str, foco: str = None) -> s
 
     except Exception as e:
         return f"Erro ao processar o documento: {e}"
+
+def gerenciar_memoria_codigo(acao: str, chave: str = "", conteudo: str = "") -> str:
+    """
+    Um 'clipboard' interno para a IA armazenar e consultar trechos de código,
+    assinaturas de funções ou resumos de arquivos enquanto trabalha em múltiplos arquivos.
+    Ações permitidas: 'salvar', 'consultar', 'listar', 'limpar'.
+    """
+    global _MEMORIA_DE_CODIGO
+    acao = acao.lower().strip()
+
+    if acao == 'salvar':
+        if not chave or not conteudo:
+            return "Erro: Para 'salvar', você deve fornecer uma 'chave' (ex: nome do arquivo) e o 'conteudo'."
+        _MEMORIA_DE_CODIGO[chave] = conteudo
+        logging.info(f"Contexto de código salvo na RAM sob a chave '{chave}'.")
+        return f"Contexto salvo com sucesso na chave '{chave}'. Tamanho: {len(conteudo)} caracteres."
+    
+    elif acao == 'consultar':
+        if not chave:
+            return "Erro: Forneça a 'chave' que deseja consultar."
+        if chave in _MEMORIA_DE_CODIGO:
+            return f"--- CONTEÚDO DA CHAVE '{chave}' ---\n{_MEMORIA_DE_CODIGO[chave]}"
+        return f"Aviso: Nenhuma memória de código encontrada para a chave '{chave}'."
+    
+    elif acao == 'listar':
+        if not _MEMORIA_DE_CODIGO:
+            return "A memória de contexto de código está vazia no momento."
+        chaves = ", ".join(_MEMORIA_DE_CODIGO.keys())
+        return f"Chaves atualmente armazenadas no seu bloco de notas: {chaves}"
+    
+    elif acao == 'limpar':
+        if chave:
+            if chave in _MEMORIA_DE_CODIGO:
+                del _MEMORIA_DE_CODIGO[chave]
+                return f"Chave '{chave}' removida da memória de trabalho."
+            return f"A chave '{chave}' não existe."
+        else:
+            _MEMORIA_DE_CODIGO.clear()
+            logging.info("Memória de código global (RAM) limpa.")
+            return "Toda a memória de contexto temporária foi apagada."
+    else:
+        return "Ação inválida. Use uma das opções: 'salvar', 'consultar', 'listar' ou 'limpar'."
