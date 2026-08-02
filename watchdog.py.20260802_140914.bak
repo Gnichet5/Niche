@@ -8,25 +8,25 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [WATCHDOG] %(message)s")
 
 # Regras de Negócio do Auto-Healing
-TIMEOUT_SEGUNDOS = 60  # Se o Janus ficar 1 minuto inteiro sem emitir pulso, ele mata
+TIMEOUT_SEGUNDOS = 60  # Se o JARVIS ficar 1 minuto inteiro sem emitir pulso, ele mata
 ARQUIVO_HEARTBEAT = "heartbeat.txt"
 ARQUIVO_LOG_SISTEMA = "watchdog_historico.log"
-NOME_SCRIPT_JANUS = "main.py"
+NOME_SCRIPT_JARVIS = "main.py"
 
-def buscar_pid_janus():
+def buscar_pid_jarvis():
     """Vareja os processos do Windows atrás do Python rodando o main.py"""
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
             # Verifica se é um processo python e se 'main.py' está nos argumentos
             if proc.info['name'] and 'python' in proc.info['name'].lower():
-                if proc.info['cmdline'] and any(NOME_SCRIPT_JANUS in cmd for cmd in proc.info['cmdline']):
+                if proc.info['cmdline'] and any(NOME_SCRIPT_JARVIS in cmd for cmd in proc.info['cmdline']):
                     return proc.info['pid']
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return None
 
 def registrar_incidente(motivo):
-    """Deixa um bilhete para o Janus ler depois e saber que apagou"""
+    """Deixa um bilhete para o JARVIS ler depois e saber que apagou"""
     with open(ARQUIVO_LOG_SISTEMA, "a", encoding="utf-8") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] INCIDENTE CRÍTICO: {motivo}\n")
 
@@ -43,9 +43,9 @@ def executar_auto_healing(pid_travado, motivo):
         except Exception as e:
             logging.error(f"Erro ao tentar matar o processo: {e}")
 
-    logging.info("Ressuscitando o Janus...")
+    logging.info("Ressuscitando o JARVIS...")
     # Levanta uma nova janela independente com o script
-    subprocess.Popen(f"start python {NOME_SCRIPT_JANUS}", shell=True)
+    subprocess.Popen(f"start python {NOME_SCRIPT_JARVIS}", shell=True)
     
     # Reseta o pulso para não entrar em loop infinito de mortes
     with open(ARQUIVO_HEARTBEAT, "w") as f:
@@ -65,10 +65,10 @@ def iniciar_monitoramento():
     while True:
         time.sleep(10)  # O Watchdog checa os sinais vitais a cada 10 segundos
         
-        pid_janus = buscar_pid_janus()
+        pid_jarvis = buscar_pid_jarvis()
         
-        if not pid_janus:
-            logging.error("O Janus não está rodando no momento.")
+        if not pid_jarvis:
+            logging.error("O JARVIS não está rodando no momento.")
             executar_auto_healing(None, "Processo não encontrado (Crash Silencioso)")
             continue
 
@@ -79,8 +79,8 @@ def iniciar_monitoramento():
             tempo_sem_resposta = tempo_agora - ultimo_pulso
             
             if tempo_sem_resposta > TIMEOUT_SEGUNDOS:
-                logging.error(f"O Janus está catatônico! Sem sinais há {tempo_sem_resposta:.1f} segundos.")
-                executar_auto_healing(pid_janus, f"Timeout de {TIMEOUT_SEGUNDOS}s estourado (Possível travamento de Driver/API)")
+                logging.error(f"O JARVIS está catatônico! Sem sinais há {tempo_sem_resposta:.1f} segundos.")
+                executar_auto_healing(pid_jarvis, f"Timeout de {TIMEOUT_SEGUNDOS}s estourado (Possível travamento de Driver/API)")
             else:
                 logging.info(f"Status: SAUDÁVEL. (Último pulso há {tempo_sem_resposta:.1f}s)")
                 

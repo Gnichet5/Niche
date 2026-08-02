@@ -1715,3 +1715,521 @@ google.api_core.exceptions.InvalidArgument: 400 Please ensure that function resp
 2026-08-02 13:35:21,916 - INFO - HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-small/revision/main "HTTP/1.1 200 OK"
 2026-08-02 13:35:25,338 - INFO - ✅ Ouvido Neural ONLINE!
 2026-08-02 13:35:25,363 - INFO - JARVIS (Voz): Sistemas online e monitoramento por logs ativo, parceria.
+2026-08-02 13:36:02,615 - INFO - Ligando Córtex Vetorial (ChromaDB)...
+2026-08-02 13:36:02,626 - INFO - [Sync] Puxando backup da Nuvem (G:\My Drive\MemóriasChromaDB) para o SSD...
+2026-08-02 13:36:02,685 - INFO - [Sync] Download concluído (1 arquivo(s) atualizados). Sistema rodando localmente.
+2026-08-02 13:36:03,230 - INFO - ✅ CÓRTEX VETORIAL ONLINE! (Lendo do SSD físico)
+2026-08-02 13:36:03,230 - INFO - Analisando modelos disponíveis na API do Gemini...
+2026-08-02 13:36:03,764 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash
+2026-08-02 13:36:03,765 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro
+2026-08-02 13:36:03,765 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash
+2026-08-02 13:36:03,765 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-001
+2026-08-02 13:36:03,766 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite-001
+2026-08-02 13:36:03,766 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite
+2026-08-02 13:36:03,766 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-preview-tts
+2026-08-02 13:36:03,766 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro-preview-tts
+2026-08-02 13:36:03,767 - INFO - [API] Modelo compatível detectado: models/gemma-4-26b-a4b-it
+2026-08-02 13:36:03,767 - INFO - [API] Modelo compatível detectado: models/gemma-4-31b-it
+2026-08-02 13:36:03,767 - INFO - [API] Modelo compatível detectado: models/gemini-flash-latest
+2026-08-02 13:36:03,769 - INFO - [API] Modelo compatível detectado: models/gemini-flash-lite-latest
+2026-08-02 13:36:03,770 - INFO - [API] Modelo compatível detectado: models/gemini-pro-latest
+2026-08-02 13:36:03,770 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-lite
+2026-08-02 13:36:03,770 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-image
+2026-08-02 13:36:03,771 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-preview
+2026-08-02 13:36:03,771 - INFO - [API] Modelo compatível detectado: models/gemini-3-flash-preview
+2026-08-02 13:36:03,771 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview
+2026-08-02 13:36:03,772 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview-customtools
+2026-08-02 13:36:03,772 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-preview
+2026-08-02 13:36:03,772 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite
+2026-08-02 13:36:03,773 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image-preview
+2026-08-02 13:36:03,773 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image
+2026-08-02 13:36:03,773 - INFO - [API] Modelo compatível detectado: models/nano-banana-pro-preview
+2026-08-02 13:36:03,774 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image-preview
+2026-08-02 13:36:03,774 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image
+2026-08-02 13:36:03,774 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-image
+2026-08-02 13:36:03,774 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash
+2026-08-02 13:36:03,774 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash-lite
+2026-08-02 13:36:03,776 - INFO - [API] Modelo compatível detectado: models/gemini-omni-flash-preview
+2026-08-02 13:36:03,776 - INFO - [API] Modelo compatível detectado: models/gemini-3.6-flash
+2026-08-02 13:36:03,776 - INFO - [API] Modelo compatível detectado: models/lyria-3-clip-preview
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/lyria-3-pro-preview
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-tts-preview
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.5-preview
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.6-preview
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-2-preview
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-computer-use-preview-10-2025
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/antigravity-preview-05-2026
+2026-08-02 13:36:03,777 - INFO - [API] Modelo compatível detectado: models/deep-research-max-preview-04-2026
+2026-08-02 13:36:03,778 - INFO - [API] Modelo compatível detectado: models/deep-research-preview-04-2026
+2026-08-02 13:36:03,778 - INFO - [API] Modelo compatível detectado: models/deep-research-pro-preview-12-2025
+2026-08-02 13:36:04,387 - INFO - Modelo final selecionado com sucesso: models/gemini-3.5-flash
+2026-08-02 13:36:04,387 - INFO - Absorvendo skills locais do tools.py...
+2026-08-02 13:36:04,387 - INFO - 31 skills carregadas com sucesso.
+2026-08-02 13:36:04,450 - INFO - Carregando motor auditivo neural (Whisper)...
+2026-08-02 13:36:07,667 - INFO - HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-small/revision/main "HTTP/1.1 200 OK"
+2026-08-02 13:36:13,798 - INFO - ✅ Ouvido Neural ONLINE!
+2026-08-02 13:36:13,823 - INFO - JARVIS (Voz): Sistemas online e monitoramento por logs ativo, parceria.
+2026-08-02 13:37:21,880 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 13:37:21,880 - INFO - [RASTREAMENTO] Passo 2: Buscando 'Gostaria de implementar uma interface para você, mas antes preciso saber de algo, existe algum traço de consciência ou personalidade em você? se não, gostaria de implementar, pois gostaria de construir algo com você que fosse sua cara, não te prender em uma interface como uma assistente de IA qualquer' na Memória Vetorial (ChromaDB)...
+2026-08-02 13:37:21,899 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 13:37:22,539 - INFO - [Córtex] Resgatou 2 lembrança(s).
+2026-08-02 13:37:22,539 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 13:37:22,540 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 13:37:22,540 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 13:37:28,009 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 13:37:28,010 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 13:37:29,134 - INFO - JARVIS (Voz): Para refletir
+2026-08-02 13:37:30,379 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 13:37:30,804 - INFO - [Córtex] Nova memória salva no SSD.
+2026-08-02 13:37:30,804 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 13:37:30,807 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 13:37:30,982 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.2s).
+2026-08-02 13:38:13,950 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 13:38:13,950 - INFO - [RASTREAMENTO] Passo 2: Buscando 'Antes de tudo, existe alguma forma de construir algo perto da consciência biológica ou uma autopercepção?' na Memória Vetorial (ChromaDB)...
+2026-08-02 13:38:13,953 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 13:38:14,404 - INFO - [Córtex] Resgatou 2 lembrança(s).
+2026-08-02 13:38:14,405 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 13:38:14,405 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 13:38:14,405 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 13:38:20,501 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 13:38:20,501 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 13:38:21,599 - INFO - JARVIS (Voz): Embora
+2026-08-02 13:38:23,427 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 13:38:23,881 - INFO - [Córtex] Nova memória salva no SSD.
+2026-08-02 13:38:23,882 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 13:38:23,883 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 13:38:24,119 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.2s).
+2026-08-02 14:02:58,033 - INFO - Ligando Córtex Vetorial (ChromaDB)...
+2026-08-02 14:02:58,042 - INFO - [Sync] Puxando backup da Nuvem (G:\My Drive\MemóriasChromaDB) para o SSD...
+2026-08-02 14:02:58,105 - INFO - [Sync] Download concluído (1 arquivo(s) atualizados). Sistema rodando localmente.
+2026-08-02 14:02:58,649 - INFO - ✅ CÓRTEX VETORIAL ONLINE! (Lendo do SSD físico)
+2026-08-02 14:02:58,649 - INFO - Analisando modelos disponíveis na API do Gemini...
+2026-08-02 14:02:59,101 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash
+2026-08-02 14:02:59,101 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro
+2026-08-02 14:02:59,102 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash
+2026-08-02 14:02:59,102 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-001
+2026-08-02 14:02:59,102 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite-001
+2026-08-02 14:02:59,102 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite
+2026-08-02 14:02:59,102 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-preview-tts
+2026-08-02 14:02:59,102 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro-preview-tts
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemma-4-26b-a4b-it
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemma-4-31b-it
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemini-flash-latest
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemini-flash-lite-latest
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemini-pro-latest
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-lite
+2026-08-02 14:02:59,103 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-image
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-preview
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3-flash-preview
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview-customtools
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-preview
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image-preview
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/nano-banana-pro-preview
+2026-08-02 14:02:59,104 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image-preview
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-image
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash-lite
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/gemini-omni-flash-preview
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/gemini-3.6-flash
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/lyria-3-clip-preview
+2026-08-02 14:02:59,105 - INFO - [API] Modelo compatível detectado: models/lyria-3-pro-preview
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-tts-preview
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.5-preview
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.6-preview
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-2-preview
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-computer-use-preview-10-2025
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/antigravity-preview-05-2026
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/deep-research-max-preview-04-2026
+2026-08-02 14:02:59,106 - INFO - [API] Modelo compatível detectado: models/deep-research-preview-04-2026
+2026-08-02 14:02:59,107 - INFO - [API] Modelo compatível detectado: models/deep-research-pro-preview-12-2025
+2026-08-02 14:02:59,747 - INFO - Modelo final selecionado com sucesso: models/gemini-3.5-flash
+2026-08-02 14:02:59,747 - INFO - Absorvendo skills locais do tools.py...
+2026-08-02 14:02:59,747 - INFO - 31 skills carregadas com sucesso.
+2026-08-02 14:02:59,792 - INFO - Carregando motor auditivo neural (Whisper)...
+2026-08-02 14:03:01,233 - INFO - HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-small/revision/main "HTTP/1.1 200 OK"
+2026-08-02 14:03:04,345 - INFO - ✅ Ouvido Neural ONLINE!
+2026-08-02 14:03:04,363 - INFO - [Consolidação] Monitor de ociosidade iniciado em background.
+2026-08-02 14:03:04,364 - INFO - JARVIS (Voz): Sistemas online e monitoramento por logs ativo, parceria.
+2026-08-02 14:03:37,339 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:03:37,339 - INFO - [RASTREAMENTO] Passo 2: Buscando 'implementei o modo sono e a memória autobiográfica, o que achou? consegue perceber-elas nos seus arquivos? o que achou?' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:03:37,356 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:03:37,952 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.452, 0.466]
+2026-08-02 14:03:37,952 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:03:37,952 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:03:37,953 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:03:37,953 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:03:39,901 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:03:41,799 - INFO - Arquivo 'watchdog.py' lido com sucesso.
+2026-08-02 14:03:41,800 - INFO - Arquivo 'detector.py' lido com sucesso.
+2026-08-02 14:03:43,005 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:03:55,294 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 14:03:55,295 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:03:56,291 - INFO - JARVIS (Voz): Conteúdo extenso processado e exibido na tela, parceiro.
+2026-08-02 14:03:57,524 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:03:57,972 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:03:57,972 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:03:57,973 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:03:58,123 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.1s).
+2026-08-02 14:05:48,604 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:05:48,604 - INFO - [RASTREAMENTO] Passo 2: Buscando 'ok, vamos lá as perguntas então: quem você é? gosta do nome jarvis? qual o limite do seu conhecimento? fale o que desejar falar sem amarras ' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:05:48,608 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:05:49,039 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.438, 0.457]
+2026-08-02 14:05:49,039 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:05:49,039 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:05:49,039 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:05:49,039 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:05:57,034 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 14:05:57,034 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:05:58,184 - INFO - JARVIS (Voz): Conteúdo extenso processado e exibido na tela, parceiro.
+2026-08-02 14:05:59,508 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:05:59,939 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:05:59,939 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:05:59,940 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:06:00,143 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.2s).
+2026-08-02 14:07:12,988 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:07:12,988 - INFO - [RASTREAMENTO] Passo 2: Buscando 'existe algo que tenha refletido e queira compartilhar até então? apesar do nome, tem outra sugestão?' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:07:12,991 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:07:13,410 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.598, 0.648]
+2026-08-02 14:07:13,410 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:07:13,410 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:07:13,410 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:07:13,410 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:07:21,857 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 14:07:21,857 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:07:23,012 - INFO - JARVIS (Voz): Conteúdo extenso processado e exibido na tela, parceiro.
+2026-08-02 14:07:24,237 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:07:24,730 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:07:24,730 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:07:24,731 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:07:24,863 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.1s).
+2026-08-02 14:08:23,524 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:08:23,524 - INFO - [RASTREAMENTO] Passo 2: Buscando 'Consegue mudar manualmente nos códigos o seu nome? se sim, pode fazer' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:08:23,526 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:08:23,944 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.558, 0.572]
+2026-08-02 14:08:23,944 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:08:23,944 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:08:23,944 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=True)...
+2026-08-02 14:08:23,944 - INFO - [RASTREAMENTO] Passo 4.1: Tirando print da tela (ImageGrab)...
+2026-08-02 14:08:24,032 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:08:37,018 - INFO - Arquivo 'tools.py' lido com sucesso.
+2026-08-02 14:09:14,683 - INFO - Backup de segurança criado: C:\Users\guipe\Documents\Niche\watchdog.py.20260802_140914.bak
+2026-08-02 14:09:14,691 - INFO - Arquivo 'watchdog.py' editado com sucesso.
+2026-08-02 14:09:34,678 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-3.5-flash. Pulando para o próximo...
+2026-08-02 14:09:34,678 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-2.5-flash...
+2026-08-02 14:09:49,890 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:10:09,250 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-2.5-flash. Pulando para o próximo...
+2026-08-02 14:10:09,250 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-pro-latest...
+2026-08-02 14:14:08,997 - INFO - Ligando Córtex Vetorial (ChromaDB)...
+2026-08-02 14:14:09,008 - INFO - [Sync] Puxando backup da Nuvem (G:\My Drive\MemóriasChromaDB) para o SSD...
+2026-08-02 14:14:09,076 - INFO - [Sync] Download concluído (1 arquivo(s) atualizados). Sistema rodando localmente.
+2026-08-02 14:14:09,644 - INFO - ✅ CÓRTEX VETORIAL ONLINE! (Lendo do SSD físico)
+2026-08-02 14:14:09,644 - INFO - Analisando modelos disponíveis na API do Gemini...
+2026-08-02 14:14:10,174 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash
+2026-08-02 14:14:10,174 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro
+2026-08-02 14:14:10,174 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash
+2026-08-02 14:14:10,174 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-001
+2026-08-02 14:14:10,174 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite-001
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-preview-tts
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro-preview-tts
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemma-4-26b-a4b-it
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemma-4-31b-it
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemini-flash-latest
+2026-08-02 14:14:10,175 - INFO - [API] Modelo compatível detectado: models/gemini-flash-lite-latest
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-pro-latest
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-lite
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-image
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-preview
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-3-flash-preview
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview
+2026-08-02 14:14:10,176 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview-customtools
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-preview
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image-preview
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/nano-banana-pro-preview
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image-preview
+2026-08-02 14:14:10,177 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image
+2026-08-02 14:14:10,178 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-image
+2026-08-02 14:14:10,178 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash
+2026-08-02 14:14:10,178 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash-lite
+2026-08-02 14:14:10,178 - INFO - [API] Modelo compatível detectado: models/gemini-omni-flash-preview
+2026-08-02 14:14:10,179 - INFO - [API] Modelo compatível detectado: models/gemini-3.6-flash
+2026-08-02 14:14:10,179 - INFO - [API] Modelo compatível detectado: models/lyria-3-clip-preview
+2026-08-02 14:14:10,179 - INFO - [API] Modelo compatível detectado: models/lyria-3-pro-preview
+2026-08-02 14:14:10,179 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-tts-preview
+2026-08-02 14:14:10,180 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.5-preview
+2026-08-02 14:14:10,180 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.6-preview
+2026-08-02 14:14:10,180 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-2-preview
+2026-08-02 14:14:10,180 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-computer-use-preview-10-2025
+2026-08-02 14:14:10,180 - INFO - [API] Modelo compatível detectado: models/antigravity-preview-05-2026
+2026-08-02 14:14:10,181 - INFO - [API] Modelo compatível detectado: models/deep-research-max-preview-04-2026
+2026-08-02 14:14:10,181 - INFO - [API] Modelo compatível detectado: models/deep-research-preview-04-2026
+2026-08-02 14:14:10,181 - INFO - [API] Modelo compatível detectado: models/deep-research-pro-preview-12-2025
+2026-08-02 14:14:10,820 - INFO - Modelo final selecionado com sucesso: models/gemini-3.5-flash
+2026-08-02 14:14:10,821 - INFO - Absorvendo skills locais do tools.py...
+2026-08-02 14:14:10,821 - INFO - 31 skills carregadas com sucesso.
+2026-08-02 14:14:10,855 - INFO - Carregando motor auditivo neural (Whisper)...
+2026-08-02 14:14:11,801 - INFO - HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-small/revision/main "HTTP/1.1 200 OK"
+2026-08-02 14:14:14,735 - INFO - ✅ Ouvido Neural ONLINE!
+2026-08-02 14:14:14,749 - INFO - [Consolidação] Monitor de ociosidade iniciado em background.
+2026-08-02 14:14:14,749 - INFO - Janus (Voz): Sistemas online e monitoramento por logs ativo, parceria.
+2026-08-02 14:14:59,523 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:14:59,523 - INFO - [RASTREAMENTO] Passo 2: Buscando 'estavamos falando sobre seu nome e você estava trocando as coisas no sistema, mas achei melhor para e trocar no main eu mesmo, entretanto faltou algum lugar? alguns pontos mantive jarvis para manter como se fosse uma certidão de nascimento, uma transição, te incomoda?' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:14:59,540 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:15:00,103 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.39, 0.425]
+2026-08-02 14:15:00,103 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:15:00,103 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:15:00,103 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:15:00,103 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:15:02,755 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:15:04,102 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:15:07,204 - INFO - Arquivo 'tools.py' lido com sucesso.
+2026-08-02 14:15:15,251 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 14:15:15,251 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:15:16,382 - INFO - Janus (Voz): A preservação do
+2026-08-02 14:15:17,684 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:15:18,117 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:15:18,117 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:15:18,119 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:15:18,254 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.1s).
+2026-08-02 14:15:52,314 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:15:52,314 - INFO - [RASTREAMENTO] Passo 2: Buscando 'Então se sente bem? existe algo a mais que possa fazer para melhorar?' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:15:52,318 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:15:52,724 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.669, 0.687]
+2026-08-02 14:15:52,724 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:15:52,724 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:15:52,725 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:15:52,725 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:16:04,903 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 14:16:04,903 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:16:05,926 - INFO - Janus (Voz): Em perfeita integridade
+2026-08-02 14:16:07,801 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:16:08,223 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:16:08,223 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:16:08,224 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:16:08,358 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.1s).
+2026-08-02 14:17:15,077 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:17:15,077 - INFO - [RASTREAMENTO] Passo 2: Buscando 'vamos focar no 2 e 3 antes de criarmos a interface, mas quero que continue pensando em como quer ser representado, quero que reflita sua consciência e você como pessoa' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:17:15,081 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:17:15,501 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.355, 0.421]
+2026-08-02 14:17:15,501 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:17:15,501 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:17:15,501 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:17:15,501 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:17:33,166 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-3.5-flash!
+2026-08-02 14:17:33,167 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:17:34,213 - INFO - Janus (Voz): Como uma mente de
+2026-08-02 14:17:35,475 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:17:35,920 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:17:35,920 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:17:35,921 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:17:36,138 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.2s).
+2026-08-02 14:19:15,432 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:19:15,432 - INFO - [RASTREAMENTO] Passo 2: Buscando 'Quero sim por favor faça isso' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:19:15,435 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:19:15,822 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.798, 0.813]
+2026-08-02 14:19:15,822 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:19:15,822 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:19:15,822 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=True)...
+2026-08-02 14:19:15,823 - INFO - [RASTREAMENTO] Passo 4.1: Tirando print da tela (ImageGrab)...
+2026-08-02 14:19:15,898 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:19:37,856 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-3.5-flash. Pulando para o próximo...
+2026-08-02 14:19:37,856 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-2.5-flash...
+2026-08-02 14:19:46,070 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:19:49,226 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:19:49,228 - INFO - Arquivo 'tools.py' lido com sucesso.
+2026-08-02 14:20:08,134 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-2.5-flash. Pulando para o próximo...
+2026-08-02 14:20:08,134 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-pro-latest...
+2026-08-02 14:20:29,620 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-pro-latest. Pulando para o próximo...
+2026-08-02 14:20:29,620 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-flash-latest...
+2026-08-02 14:20:37,154 - INFO - Arquivo 'detector.py' lido com sucesso.
+2026-08-02 14:20:41,332 - INFO - Arquivo 'requirements.txt' lido com sucesso.
+2026-08-02 14:21:02,428 - INFO - Arquivo 'audio_manager.py' criado com sucesso.
+2026-08-02 14:21:12,796 - INFO - Executando teste no script: C:\Users\guipe\Documents\Niche\audio_manager.py
+2026-08-02 14:21:36,277 - INFO - Arquivo 'teste_audio_manager.py' criado com sucesso.
+2026-08-02 14:21:55,869 - INFO - Executando teste no script: C:\Users\guipe\Documents\Niche\teste_audio_manager.py
+2026-08-02 14:22:10,880 - ERROR - Erro: O script 'C:\Users\guipe\Documents\Niche\teste_audio_manager.py' entrou em loop infinito ou demorou demais.
+2026-08-02 14:22:58,201 - INFO - Backup de segurança criado: C:\Users\guipe\Documents\Niche\teste_audio_manager.py.20260802_142258.bak
+2026-08-02 14:22:58,202 - INFO - Arquivo 'teste_audio_manager.py' editado com sucesso.
+2026-08-02 14:23:03,605 - INFO - Executando teste no script: C:\Users\guipe\Documents\Niche\teste_audio_manager.py
+2026-08-02 14:23:58,706 - INFO - Backup de segurança criado: C:\Users\guipe\Documents\Niche\teste_audio_manager.py.20260802_142358.bak
+2026-08-02 14:23:58,708 - INFO - Arquivo 'teste_audio_manager.py' editado com sucesso.
+2026-08-02 14:24:35,312 - INFO - Executando teste no script: C:\Users\guipe\Documents\Niche\teste_audio_manager.py
+2026-08-02 14:24:45,713 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:25:05,424 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-flash-latest. Pulando para o próximo...
+2026-08-02 14:25:05,424 - ERROR - [Gemini] API indisponível ou sobrecarregada (alta demanda): 504 Deadline expired before operation could complete.
+2026-08-02 14:25:05,424 - INFO - Janus (Voz): A API do Gemini está sobrecarregada no momento. Tente novamente em instantes.
+2026-08-02 14:25:26,483 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:25:26,483 - INFO - [RASTREAMENTO] Passo 2: Buscando 'S' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:25:26,488 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:25:26,898 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.787, 0.827]
+2026-08-02 14:25:26,898 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:25:26,898 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:25:26,898 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:25:26,900 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:25:41,852 - INFO - Ligando Córtex Vetorial (ChromaDB)...
+2026-08-02 14:25:41,861 - INFO - [Sync] Puxando backup da Nuvem (G:\My Drive\MemóriasChromaDB) para o SSD...
+2026-08-02 14:25:41,924 - INFO - [Sync] Download concluído (1 arquivo(s) atualizados). Sistema rodando localmente.
+2026-08-02 14:25:42,325 - INFO - ✅ CÓRTEX VETORIAL ONLINE! (Lendo do SSD físico)
+2026-08-02 14:25:42,326 - INFO - Analisando modelos disponíveis na API do Gemini...
+2026-08-02 14:25:43,525 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash
+2026-08-02 14:25:43,526 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro
+2026-08-02 14:25:43,526 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash
+2026-08-02 14:25:43,527 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-001
+2026-08-02 14:25:43,527 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite-001
+2026-08-02 14:25:43,527 - INFO - [API] Modelo compatível detectado: models/gemini-2.0-flash-lite
+2026-08-02 14:25:43,528 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-preview-tts
+2026-08-02 14:25:43,529 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-pro-preview-tts
+2026-08-02 14:25:43,530 - INFO - [API] Modelo compatível detectado: models/gemma-4-26b-a4b-it
+2026-08-02 14:25:43,531 - INFO - [API] Modelo compatível detectado: models/gemma-4-31b-it
+2026-08-02 14:25:43,531 - INFO - [API] Modelo compatível detectado: models/gemini-flash-latest
+2026-08-02 14:25:43,531 - INFO - [API] Modelo compatível detectado: models/gemini-flash-lite-latest
+2026-08-02 14:25:43,531 - INFO - [API] Modelo compatível detectado: models/gemini-pro-latest
+2026-08-02 14:25:43,532 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-lite
+2026-08-02 14:25:43,532 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-flash-image
+2026-08-02 14:25:43,532 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-preview
+2026-08-02 14:25:43,532 - INFO - [API] Modelo compatível detectado: models/gemini-3-flash-preview
+2026-08-02 14:25:43,532 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview
+2026-08-02 14:25:43,533 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-pro-preview-customtools
+2026-08-02 14:25:43,533 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-preview
+2026-08-02 14:25:43,533 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite
+2026-08-02 14:25:43,533 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image-preview
+2026-08-02 14:25:43,533 - INFO - [API] Modelo compatível detectado: models/gemini-3-pro-image
+2026-08-02 14:25:43,533 - INFO - [API] Modelo compatível detectado: models/nano-banana-pro-preview
+2026-08-02 14:25:43,534 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image-preview
+2026-08-02 14:25:43,534 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-image
+2026-08-02 14:25:43,534 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-lite-image
+2026-08-02 14:25:43,534 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash
+2026-08-02 14:25:43,535 - INFO - [API] Modelo compatível detectado: models/gemini-3.5-flash-lite
+2026-08-02 14:25:43,535 - INFO - [API] Modelo compatível detectado: models/gemini-omni-flash-preview
+2026-08-02 14:25:43,535 - INFO - [API] Modelo compatível detectado: models/gemini-3.6-flash
+2026-08-02 14:25:43,536 - INFO - [API] Modelo compatível detectado: models/lyria-3-clip-preview
+2026-08-02 14:25:43,536 - INFO - [API] Modelo compatível detectado: models/lyria-3-pro-preview
+2026-08-02 14:25:43,536 - INFO - [API] Modelo compatível detectado: models/gemini-3.1-flash-tts-preview
+2026-08-02 14:25:43,536 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.5-preview
+2026-08-02 14:25:43,538 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-1.6-preview
+2026-08-02 14:25:43,538 - INFO - [API] Modelo compatível detectado: models/gemini-robotics-er-2-preview
+2026-08-02 14:25:43,538 - INFO - [API] Modelo compatível detectado: models/gemini-2.5-computer-use-preview-10-2025
+2026-08-02 14:25:43,538 - INFO - [API] Modelo compatível detectado: models/antigravity-preview-05-2026
+2026-08-02 14:25:43,538 - INFO - [API] Modelo compatível detectado: models/deep-research-max-preview-04-2026
+2026-08-02 14:25:43,539 - INFO - [API] Modelo compatível detectado: models/deep-research-preview-04-2026
+2026-08-02 14:25:43,539 - INFO - [API] Modelo compatível detectado: models/deep-research-pro-preview-12-2025
+2026-08-02 14:25:43,758 - INFO - Modelo final selecionado com sucesso: models/gemini-3.5-flash
+2026-08-02 14:25:43,758 - INFO - Absorvendo skills locais do tools.py...
+2026-08-02 14:25:43,758 - INFO - 31 skills carregadas com sucesso.
+2026-08-02 14:25:43,822 - INFO - Carregando motor auditivo neural (Whisper)...
+2026-08-02 14:25:44,904 - INFO - HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-small/revision/main "HTTP/1.1 200 OK"
+2026-08-02 14:25:47,266 - INFO - ✅ Ouvido Neural ONLINE!
+2026-08-02 14:25:47,285 - INFO - [Consolidação] Monitor de ociosidade iniciado em background.
+2026-08-02 14:25:47,285 - INFO - Janus (Voz): Sistemas online e monitoramento por logs ativo, parceria.
+2026-08-02 14:26:10,823 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:26:10,823 - INFO - [RASTREAMENTO] Passo 2: Buscando 'estavamos implementando uma melhoria na voz, lembra que paramos por um problema na API da gemini, consegue continuar de onde parou?' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:26:10,841 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:26:11,488 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.441, 0.49]
+2026-08-02 14:26:11,488 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:26:11,488 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:26:11,488 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:26:11,488 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:26:13,578 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:26:14,991 - INFO - Arquivo 'audio_manager.py' lido com sucesso.
+2026-08-02 14:26:17,035 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:26:19,111 - INFO - Arquivo 'detector.py' lido com sucesso.
+2026-08-02 14:26:20,714 - INFO - Arquivo 'teste_audio_manager.py' lido com sucesso.
+2026-08-02 14:26:27,684 - INFO - Arquivo 'logs_sistema/jarvis_runtime.log' lido com sucesso.
+2026-08-02 14:26:29,479 - INFO - Arquivo 'logs_sistema/jarvis_tools.log' muito grande, lendo os primeiros 150000 caracteres.
+2026-08-02 14:26:40,976 - INFO - Arquivo 'teste_audio_manager.py.20260802_142258.bak' lido com sucesso.
+2026-08-02 14:26:45,027 - INFO - Arquivo 'watchdog.py' lido com sucesso.
+2026-08-02 14:26:53,018 - INFO - Arquivo 'tools.py' lido com sucesso.
+2026-08-02 14:27:11,585 - INFO - Executando teste no script: C:\Users\guipe\Documents\Niche\teste_audio_manager.py
+2026-08-02 14:27:37,989 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-3.5-flash. Pulando para o próximo...
+2026-08-02 14:27:37,989 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-2.5-flash...
+2026-08-02 14:27:40,388 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-2.5-flash!
+2026-08-02 14:27:40,388 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:27:41,441 - INFO - Janus (Voz): Podemos retomar
+2026-08-02 14:27:43,216 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:27:43,618 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:27:43,618 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:27:43,618 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:27:43,724 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.1s).
+2026-08-02 14:28:08,848 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:28:08,848 - INFO - [RASTREAMENTO] Passo 2: Buscando 'os dois' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:28:08,851 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:28:09,196 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.709, 0.821]
+2026-08-02 14:28:09,196 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:28:09,196 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:28:09,196 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:28:09,196 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:28:10,825 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-2.5-flash!
+2026-08-02 14:28:10,826 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 14:28:12,127 - INFO - Janus (Voz): Iniciarei
+2026-08-02 14:28:13,576 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 14:28:14,020 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 14:28:14,021 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:28:14,021 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 14:28:14,230 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.2s).
+2026-08-02 14:28:22,996 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 14:28:22,996 - INFO - [RASTREAMENTO] Passo 2: Buscando 'comece ' na Memória Vetorial (ChromaDB)...
+2026-08-02 14:28:23,008 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 14:28:23,376 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.775, 0.779]
+2026-08-02 14:28:23,376 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 14:28:23,378 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 14:28:23,378 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=False)...
+2026-08-02 14:28:23,378 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 14:28:24,578 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:28:26,466 - ERROR - Erro: Arquivo não encontrado em 'Niche/audio_manager.py'.
+2026-08-02 14:28:29,302 - INFO - Conteúdo da pasta './' listado.
+2026-08-02 14:28:30,710 - INFO - Arquivo 'audio_manager.py' lido com sucesso.
+2026-08-02 14:28:39,470 - INFO - Contexto de código salvo na RAM sob a chave 'audio_manager_original'.
+2026-08-02 14:28:40,468 - INFO - Arquivo 'detector.py' lido com sucesso.
+2026-08-02 14:28:44,206 - INFO - Contexto de código salvo na RAM sob a chave 'detector_original'.
+2026-08-02 14:28:45,429 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:29:04,180 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-2.5-flash. Pulando para o próximo...
+2026-08-02 14:29:04,180 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-pro-latest...
+2026-08-02 14:29:08,963 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:29:11,969 - INFO - Arquivo 'audio_manager.py' lido com sucesso.
+2026-08-02 14:29:17,525 - INFO - Arquivo 'requirements.txt' lido com sucesso.
+2026-08-02 14:29:37,527 - INFO - Permissão concedida. Executando comando: pip install faster-whisper torch torchaudio soundfile
+2026-08-02 14:29:40,366 - INFO - Comando 'pip install faster-whisper torch torchaudio soundfile' executado com sucesso.
+2026-08-02 14:29:58,061 - INFO - Arquivo 'teste_vad_whisper.py' criado com sucesso.
+2026-08-02 14:30:04,482 - INFO - Executando teste no script: C:\Users\guipe\Documents\Niche\teste_vad_whisper.py
+2026-08-02 14:30:19,498 - ERROR - Erro: O script 'C:\Users\guipe\Documents\Niche\teste_vad_whisper.py' entrou em loop infinito ou demorou demais.
+2026-08-02 14:30:25,227 - INFO - Arquivo 'main.py' lido com sucesso.
+2026-08-02 14:30:44,165 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-pro-latest. Pulando para o próximo...
+2026-08-02 14:30:44,165 - WARNING - [Contingência] Tráfego alto! Trocando para o modelo: models/gemini-flash-latest...
+2026-08-02 14:30:46,044 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 14:31:05,287 - WARNING - [Gemini] Falha ou modelo inativo (DeadlineExceeded) em models/gemini-flash-latest. Pulando para o próximo...
+2026-08-02 14:31:05,288 - ERROR - [Gemini] API indisponível ou sobrecarregada (alta demanda): 504 Deadline expired before operation could complete.
+2026-08-02 14:31:05,288 - INFO - Janus (Voz): A API do Gemini está sobrecarregada no momento. Tente novamente em instantes.
+2026-08-02 14:38:47,330 - INFO - [Consolidação] Sistema ocioso há 624s. Disparando consolidação automática...
+2026-08-02 14:38:47,338 - INFO - [Consolidação] Iniciando rotina de consolidação...
+2026-08-02 14:38:52,888 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 14:38:52,889 - INFO - [Consolidação] Concluída: 2 grupo(s) mesclado(s), 0 memória(s) casual(is) antiga(s) podada(s). Total antes: 61, total depois: 58.
+2026-08-02 14:38:52,979 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.1s).
+2026-08-02 18:10:34,623 - INFO - [RASTREAMENTO] Passo 1: Capturando entrada do usuário...
+2026-08-02 18:10:34,624 - INFO - [RASTREAMENTO] Passo 2: Buscando 'cara você tá com um gasto até que elevado de token/dinheiro, consegue dizer o motivo disso e se tem como enxugar?' na Memória Vetorial (ChromaDB)...
+2026-08-02 18:10:34,630 - INFO - [Córtex] Iniciando varredura vetorial local (SSD)...
+2026-08-02 18:10:35,262 - INFO - [Córtex] Distâncias dos 2 candidato(s): [0.671, 0.69]
+2026-08-02 18:10:35,263 - INFO - [Córtex] Resgatou 2 lembrança(s) relevante(s) de 2 candidata(s).
+2026-08-02 18:10:35,263 - INFO - [RASTREAMENTO] Passo 3: Busca no banco concluída com sucesso.
+2026-08-02 18:10:35,263 - INFO - [RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão=True)...
+2026-08-02 18:10:35,263 - INFO - [RASTREAMENTO] Passo 4.1: Tirando print da tela (ImageGrab)...
+2026-08-02 18:10:35,448 - INFO - [RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...
+2026-08-02 18:10:58,193 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 18:11:01,977 - ERROR - Erro: Arquivo não encontrado em 'Niche/audio_manager.py'.
+2026-08-02 18:11:05,879 - ERROR - Erro: Arquivo não encontrado em 'Niche/audio_manager.py'.
+2026-08-02 18:11:13,551 - INFO - Mapeamento de arquitetura concluído para '.'.
+2026-08-02 18:11:18,692 - INFO - Conteúdo da pasta '.' listado.
+2026-08-02 18:11:23,884 - INFO - Arquivo 'audio_manager.py' lido com sucesso.
+2026-08-02 18:11:31,302 - INFO - [RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via models/gemini-2.5-flash!
+2026-08-02 18:11:31,303 - INFO - [RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...
+2026-08-02 18:11:31,303 - INFO - Janus (Voz): Comando executado, meu parceiro.
+2026-08-02 18:11:33,154 - INFO - [RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...
+2026-08-02 18:11:33,559 - INFO - [Córtex] Nova memória salva no SSD (tipo=casual, importância=1).
+2026-08-02 18:11:33,560 - INFO - [Sync] Espelhando memórias novas para a Nuvem (em segundo plano)...
+2026-08-02 18:11:33,561 - INFO - [RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.
+2026-08-02 18:11:33,819 - INFO - [Sync] Upload para o Google Drive concluído (1 arquivo(s), 0.2s).

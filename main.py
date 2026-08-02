@@ -59,7 +59,7 @@ genai.configure(api_key=api_key)
 pygame.mixer.init()
 
 system_instruction = """
-Você é JARVIS, um engenheiro de software autônomo e assistente virtual avançado.
+Você é Janus, um engenheiro de software autônomo e assistente virtual avançado.
 Suas respostas faladas devem ser concisas e em português.
 
 [PROTOCOLO DE ENGENHARIA E RACIOCÍNIO - ZERO SHOT]
@@ -335,13 +335,13 @@ def speak(text):
     if len(text) > 200 or text.count("\n") > 1:
         texto_para_falar = sintetizar_para_voz(text)
         print("\n" + "=" * 40)
-        print("[JARVIS - Resposta completa exibida no console]")
+        print("[Janus - Resposta completa exibida no console]")
         print(text)
         print("=" * 40)
     else:
         texto_para_falar = text
 
-    logging.info(f"JARVIS (Voz): {texto_para_falar}")
+    logging.info(f"Janus (Voz): {texto_para_falar}")
 
     try:
         asyncio.run(generate_audio(texto_para_falar))
@@ -524,14 +524,200 @@ def salvar_memoria_vetorial(pergunta, resposta, tipo="casual", importancia=1):
         logging.error(f"Falha ao gravar memória vetorial: {e}")
 
 # =================================================================
+# 5.6 CONSOLIDAÇÃO DE MEMÓRIA (O "SONO" DO JARVIS)
+# =================================================================
+# Mescla memórias muito parecidas em uma síntese só, e poda memórias
+# casuais antigas/pouco importantes. Roda por ociosidade (thread em
+# background) ou sob demanda (comando manual "consolidar memória").
+
+OCIOSIDADE_LIMITE_SEGUNDOS = 600          # 10 min sem comando = sistema "ocioso"
+INTERVALO_MINIMO_ENTRE_CONSOLIDACOES = 6 * 3600  # não repete antes de 6h
+SIMILARIDADE_MINIMA_CONSOLIDACAO = 0.92   # cosseno; alto de propósito p/ só mesclar quase-duplicatas
+PODA_DIAS_LIMITE = 30                     # casuais mais velhas que isso são candidatas a poda
+PODA_IMPORTANCIA_MAXIMA = 2               # só poda quem tem importância baixa (1-2)
+MINIMO_MEMORIAS_PARA_CONSOLIDAR = 5       # não vale a pena rodar em bases muito pequenas
+
+_ultimo_comando_timestamp = time.time()
+_ultima_consolidacao_timestamp = 0.0
+_consolidacao_lock = threading.Lock()
+
+
+def _cosseno(v1, v2):
+    produto_escalar = sum(a * b for a, b in zip(v1, v2))
+    norma1 = sum(a * a for a in v1) ** 0.5
+    norma2 = sum(b * b for b in v2) ** 0.5
+    if norma1 == 0 or norma2 == 0:
+        return 0.0
+    return produto_escalar / (norma1 * norma2)
+
+
+def _agrupar_por_similaridade(ids, docs, embeddings, metadatas):
+    """Agrupamento guloso: cada item entra no primeiro cluster com que for
+    similar o bastante; senão vira o representante de um cluster novo."""
+    clusters = []  
+    for i in range(len(ids)):
+        encaixou = False
+        for cluster in clusters:
+            representante = cluster[0]
+            if _cosseno(embeddings[i], embeddings[representante]) >= SIMILARIDADE_MINIMA_CONSOLIDACAO:
+                cluster.append(i)
+                encaixou = True
+                break
+        if not encaixou:
+            clusters.append([i])
+    return clusters
+
+
+def consolidar_memoria():
+    """Executa uma passada de consolidação: mescla memórias quase-duplicadas
+    e poda memórias casuais antigas/pouco importantes. Thread-safe e seguro
+    pra rodar tanto em background quanto por comando manual."""
+    global _ultima_consolidacao_timestamp
+
+    if not _consolidacao_lock.acquire(blocking=False):
+        logging.info("[Consolidação] Já existe uma consolidação em andamento, pulando.")
+        return "Já estou consolidando a memória, parceiro. Aguarde essa rodada terminar."
+
+    try:
+        if not colecao_memoria or colecao_memoria.count() < MINIMO_MEMORIAS_PARA_CONSOLIDAR:
+            logging.info("[Consolidação] Poucas memórias no banco ainda, pulando esta rodada.")
+            return "Ainda não tenho memórias suficientes pra valer a pena consolidar."
+
+        logging.info("[Consolidação] Iniciando rotina de consolidação...")
+        dados = colecao_memoria.get(include=["embeddings", "documents", "metadatas"])
+        ids = dados["ids"]
+        docs = dados["documents"]
+        embeddings = dados["embeddings"]
+        metadatas = [m or {} for m in dados["metadatas"]]
+
+        ids_para_deletar = set()
+        entradas_para_adicionar = []  
+        clusters = _agrupar_por_similaridade(ids, docs, embeddings, metadatas)
+        clusters_mesclados = 0
+        for cluster in clusters:
+            if len(cluster) < 2:
+                continue  # nada pra mesclar
+
+            textos_originais = [docs[i] for i in cluster]
+            importancia_maxima = max(int(metadatas[i].get("importancia", 1)) for i in cluster)
+
+            prompt_sintese = (
+                "As frases abaixo são memórias parecidas registradas por um assistente de IA. "
+                "Funda tudo em UMA única frase factual e concisa em português, preservando os "
+                "detalhes que se repetem ou se complementam, sem inventar nada novo. "
+                "Responda APENAS com a frase final.\n\n" + "\n".join(f"- {t}" for t in textos_originais)
+            )
+            try:
+                resposta_sintese = modelo_resumo.generate_content(
+                    prompt_sintese,
+                    generation_config={"max_output_tokens": 150, "temperature": 0.2},
+                    request_options=GEMINI_REQUEST_OPTIONS
+                )
+                texto_consolidado = resposta_sintese.text.strip()
+            except Exception as e:
+                logging.warning(f"[Consolidação] Falha ao sintetizar cluster, mantendo original mais recente: {e}")
+                continue 
+
+            novo_vetor = _sanitizar_vetor(
+                genai.embed_content(
+                    model=EMBEDDING_MODEL,
+                    content=texto_consolidado,
+                    output_dimensionality=EMBEDDING_DIMENSAO
+                )["embedding"]
+            )
+
+            for i in cluster:
+                ids_para_deletar.add(ids[i])
+
+            entradas_para_adicionar.append((
+                str(uuid.uuid4()),
+                texto_consolidado,
+                novo_vetor,
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "tipo": "consolidado",
+                    "importancia": importancia_maxima,
+                    "origem_quantidade": len(cluster),
+                }
+            ))
+            clusters_mesclados += 1
+
+        # --- 2. PODA DE CASUAIS ANTIGAS E POUCO IMPORTANTES ---
+        agora = datetime.now(timezone.utc)
+        podadas = 0
+        for i, mid in enumerate(ids):
+            if mid in ids_para_deletar:
+                continue  # já foi pro cluster de mesclagem, não poda de novo
+            meta = metadatas[i]
+            if meta.get("tipo") != "casual":
+                continue
+            if int(meta.get("importancia", 1)) > PODA_IMPORTANCIA_MAXIMA:
+                continue
+            timestamp_str = meta.get("timestamp")
+            if not timestamp_str:
+                continue  # memória legada sem timestamp: não mexe, fica pra auditoria manual
+            try:
+                data_memoria = datetime.fromisoformat(timestamp_str)
+            except ValueError:
+                continue
+            idade_dias = (agora - data_memoria).days
+            if idade_dias >= PODA_DIAS_LIMITE:
+                ids_para_deletar.add(mid)
+                podadas += 1
+
+        # --- 3. APLICA AS MUDANÇAS NO BANCO ---
+        with _db_io_lock:
+            if ids_para_deletar:
+                colecao_memoria.delete(ids=list(ids_para_deletar))
+            for novo_id, texto, vetor, meta in entradas_para_adicionar:
+                colecao_memoria.add(ids=[novo_id], documents=[texto], embeddings=[vetor], metadatas=[meta])
+
+        sync_local_para_nuvem()
+        _ultima_consolidacao_timestamp = time.time()
+
+        resumo = (
+            f"[Consolidação] Concluída: {clusters_mesclados} grupo(s) mesclado(s), "
+            f"{podadas} memória(s) casual(is) antiga(s) podada(s). "
+            f"Total antes: {len(ids)}, total depois: {len(ids) - len(ids_para_deletar) + len(entradas_para_adicionar)}."
+        )
+        logging.info(resumo)
+        return f"Consolidação concluída: mesclei {clusters_mesclados} grupo(s) de memórias parecidas e podei {podadas} memória(s) antiga(s) sem importância."
+
+    except Exception as e:
+        logging.error(f"[Consolidação] Erro durante a rotina: {e}", exc_info=True)
+        return "Tive um erro tentando consolidar a memória. Os detalhes estão no log."
+    finally:
+        _consolidacao_lock.release()
+
+
+def _monitor_ociosidade():
+    """Thread em background: dispara consolidação automática quando o
+    sistema fica ocioso por tempo suficiente, respeitando o intervalo
+    mínimo entre rodadas."""
+    while True:
+        time.sleep(60)
+        try:
+            ocioso_ha = time.time() - _ultimo_comando_timestamp
+            desde_ultima_consolidacao = time.time() - _ultima_consolidacao_timestamp
+            if (ocioso_ha >= OCIOSIDADE_LIMITE_SEGUNDOS
+                    and desde_ultima_consolidacao >= INTERVALO_MINIMO_ENTRE_CONSOLIDACOES):
+                logging.info(f"[Consolidação] Sistema ocioso há {int(ocioso_ha)}s. Disparando consolidação automática...")
+                consolidar_memoria()
+        except Exception as e:
+            logging.error(f"[Consolidação] Erro no monitor de ociosidade: {e}")
+
+# =================================================================
 # 6. LOOP PRINCIPAL (COM TELEMETRIA EXTREMA)
 # =================================================================
 def main():
-    global chat, modelo_escolhido
+    global chat, modelo_escolhido, _ultimo_comando_timestamp
     os.system("cls" if os.name == "nt" else "clear")
     print("=" * 40)
-    print(" SISTEMA JARVIS INICIADO ".center(40, "="))
+    print(" SISTEMA JANUS INICIADO ".center(40, "="))
     print("=" * 40)
+
+    threading.Thread(target=_monitor_ociosidade, daemon=True).start()
+    logging.info("[Consolidação] Monitor de ociosidade iniciado em background.")
 
     speak("Sistemas online e monitoramento por logs ativo, parceria.")
     gatilhos_visao = ["tela", "olhe", "veja", "isso", "print", "erro", "código"]
@@ -547,6 +733,14 @@ def main():
 
         if not user_input:
             logging.info("[RASTREAMENTO] Nenhuma entrada de texto/voz detectada. Reiniciando loop.")
+            continue
+
+        _ultimo_comando_timestamp = time.time()
+
+        if user_input.lower() in ["consolidar memória", "consolidar memoria", "consolide sua memória", "consolide sua memoria"]:
+            logging.info("[RASTREAMENTO] Comando manual de consolidação recebido.")
+            resultado = consolidar_memoria()
+            speak(resultado)
             continue
 
         if user_input.lower() in ["desligar", "sair", "encerrar"]:
