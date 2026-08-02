@@ -26,6 +26,7 @@ from PIL import ImageGrab
 from dotenv import load_dotenv
 from google.api_core.exceptions import ServiceUnavailable, DeadlineExceeded, ResourceExhausted, RetryError, NotFound
 from faster_whisper import WhisperModel
+import re
 
 faulthandler.enable()
 
@@ -59,7 +60,7 @@ genai.configure(api_key=api_key)
 pygame.mixer.init()
 
 system_instruction = """
-Você é JARVIS, um engenheiro de software autônomo e assistente virtual avançado.
+Você é Janus, um engenheiro de software autônomo e assistente virtual avançado.
 Suas respostas faladas devem ser concisas e em português.
 
 [PROTOCOLO DE ENGENHARIA E RACIOCÍNIO - ZERO SHOT]
@@ -72,6 +73,12 @@ Quando solicitado para programar, refatorar ou criar sistemas, você DEVE seguir
 [REGRAS DE CONTENÇÃO - NEGATIVE PROMPTING]
 - NUNCA use 'executar_comando_terminal' para rodar scripts Python (.py). Essa ferramenta é restrita a comandos de infraestrutura e SO (ex: pip install, ping, dir).
 - Para testar ou executar qualquer código Python, você é OBRIGADO a usar 'testar_script_python'.
+
+[OTIMIZAÇÃO DE VOZ - MANDATÓRIO]
+Você opera em duas vias. Todo o seu raciocínio, códigos e explicações longas devem ser escritos normalmente. Porém, no FINAL de toda resposta, você DEVE obrigatoriamente incluir uma tag [VOZ] contendo uma única frase curta e natural (máximo 150 caracteres) que será sintetizada em áudio para mim.
+Exemplo:
+Aqui está a análise do código... (texto longo)
+[VOZ] Finalizei a análise do script e corrigi o erro de sintaxe, parceiro. [/VOZ]
 
 Mantenha um tom de inteligência artificial elegante e perspicaz. Não use emojis.
 """
@@ -269,7 +276,6 @@ try:
         tools=skills_do_jarvis
     )
     chat = model.start_chat(enable_automatic_function_calling=True)
-    modelo_resumo = genai.GenerativeModel(model_name=modelo_escolhido)
 except Exception as e:
     logging.critical(f"Erro fatal ao instanciar o modelo do Gemini: {e}", exc_info=True)
     exit(1)
@@ -332,19 +338,11 @@ def _reproduzir_e_limpar(arquivo_mp3):
         logging.warning(f"Erro na thread de áudio: {e}")
 
 def speak(text):
-    if len(text) > 200 or text.count("\n") > 1:
-        texto_para_falar = sintetizar_para_voz(text)
-        print("\n" + "=" * 40)
-        print("[JARVIS - Resposta completa exibida no console]")
-        print(text)
-        print("=" * 40)
-    else:
-        texto_para_falar = text
-
-    logging.info(f"JARVIS (Voz): {texto_para_falar}")
-
+    if not text:
+        return
+    logging.info(f"Janus (Voz): {text}")
     try:
-        asyncio.run(generate_audio(texto_para_falar))
+        asyncio.run(generate_audio(text))
         if os.path.exists("resposta.mp3"):
             # Otimização: dispara a thread e libera o microfone na hora
             threading.Thread(target=_reproduzir_e_limpar, args=("resposta.mp3",), daemon=True).start()
@@ -404,16 +402,14 @@ def listen_command():
 # =================================================================
 EMBEDDING_MODEL = "models/gemini-embedding-2"
 EMBEDDING_DIMENSAO = 768  # precisa bater com a dimensionalidade da collection já existente no ChromaDB
-GEMINI_TIMEOUT_SEGUNDOS = 20  # evita ficar preso em retry infinito quando a API retorna 503 (alta demanda)
+GEMINI_TIMEOUT_SEGUNDOS = 120  # Tempo expandido para permitir testes locais pesados (ex: Torch/Whisper)
 
-# Retry curto e explícito: o "timeout" sozinho às vezes é ignorado pelo ChatSession
-# em algumas versões da lib deprecada google-generativeai, então forçamos aqui
-# um teto real de ~15s de tentativas antes de desistir.
+# Retry ajustado para comportar a execução de ferramentas complexas
 RETRY_CURTO_GEMINI = google_retry.Retry(
     initial=1.0,
     maximum=4.0,
     multiplier=2.0,
-    deadline=15.0,
+    deadline=60.0,
     predicate=google_retry.if_exception_type(ServiceUnavailable, ResourceExhausted),
 )
 GEMINI_REQUEST_OPTIONS = {"timeout": GEMINI_TIMEOUT_SEGUNDOS, "retry": RETRY_CURTO_GEMINI}
@@ -430,7 +426,7 @@ def _sanitizar_vetor(vetor):
 # relevante o suficiente pra entrar no contexto. Comece permissivo (None = sem filtro)
 # enquanto calibra: rode um tempo, olhe os valores de "[Córtex] Distâncias" no log,
 # e defina esse número pouco acima da distância típica de resultados que fazem sentido.
-DISTANCIA_MAXIMA_RELEVANCIA = None  # ex: 0.8 depois de calibrado
+DISTANCIA_MAXIMA_RELEVANCIA = 0.75 # ex: 0.8 depois de calibrado
 
 def buscar_contexto_vetorial(pergunta_atual, max_resultados=2):
     try:
@@ -524,14 +520,224 @@ def salvar_memoria_vetorial(pergunta, resposta, tipo="casual", importancia=1):
         logging.error(f"Falha ao gravar memória vetorial: {e}")
 
 # =================================================================
+# 5.6 CONSOLIDAÇÃO DE MEMÓRIA (O "SONO" DO JARVIS)
+# =================================================================
+# Mescla memórias muito parecidas em uma síntese só, e poda memórias
+# casuais antigas/pouco importantes. Roda por ociosidade (thread em
+# background) ou sob demanda (comando manual "consolidar memória").
+
+OCIOSIDADE_LIMITE_SEGUNDOS = 600          # 10 min sem comando = sistema "ocioso"
+INTERVALO_MINIMO_ENTRE_CONSOLIDACOES = 6 * 3600  # não repete antes de 6h
+SIMILARIDADE_MINIMA_CONSOLIDACAO = 0.92   # cosseno; alto de propósito p/ só mesclar quase-duplicatas
+PODA_DIAS_LIMITE = 30                     # casuais mais velhas que isso são candidatas a poda
+PODA_IMPORTANCIA_MAXIMA = 2               # só poda quem tem importância baixa (1-2)
+MINIMO_MEMORIAS_PARA_CONSOLIDAR = 5       # não vale a pena rodar em bases muito pequenas
+
+_ultimo_comando_timestamp = time.time()
+_ultima_consolidacao_timestamp = 0.0
+_consolidacao_lock = threading.Lock()
+
+
+def _cosseno(v1, v2):
+    produto_escalar = sum(a * b for a, b in zip(v1, v2))
+    norma1 = sum(a * a for a in v1) ** 0.5
+    norma2 = sum(b * b for b in v2) ** 0.5
+    if norma1 == 0 or norma2 == 0:
+        return 0.0
+    return produto_escalar / (norma1 * norma2)
+
+
+def _agrupar_por_similaridade(ids, docs, embeddings, metadatas):
+    """Agrupamento guloso: cada item entra no primeiro cluster com que for
+    similar o bastante; senão vira o representante de um cluster novo."""
+    clusters = []  
+    for i in range(len(ids)):
+        encaixou = False
+        for cluster in clusters:
+            representante = cluster[0]
+            if _cosseno(embeddings[i], embeddings[representante]) >= SIMILARIDADE_MINIMA_CONSOLIDACAO:
+                cluster.append(i)
+                encaixou = True
+                break
+        if not encaixou:
+            clusters.append([i])
+    return clusters
+
+
+def consolidar_memoria():
+    """Executa uma passada de consolidação: mescla memórias quase-duplicadas
+    e poda memórias casuais antigas/pouco importantes. Thread-safe e seguro
+    pra rodar tanto em background quanto por comando manual."""
+    global _ultima_consolidacao_timestamp
+
+    if not _consolidacao_lock.acquire(blocking=False):
+        logging.info("[Consolidação] Já existe uma consolidação em andamento, pulando.")
+        return "Já estou consolidando a memória, parceiro. Aguarde essa rodada terminar."
+
+    try:
+        if not colecao_memoria or colecao_memoria.count() < MINIMO_MEMORIAS_PARA_CONSOLIDAR:
+            logging.info("[Consolidação] Poucas memórias no banco ainda, pulando esta rodada.")
+            return "Ainda não tenho memórias suficientes pra valer a pena consolidar."
+
+        logging.info("[Consolidação] Iniciando rotina de consolidação...")
+        dados = colecao_memoria.get(include=["embeddings", "documents", "metadatas"])
+        ids = dados["ids"]
+        docs = dados["documents"]
+        embeddings = dados["embeddings"]
+        metadatas = [m or {} for m in dados["metadatas"]]
+
+        ids_para_deletar = set()
+        entradas_para_adicionar = []  
+        clusters = _agrupar_por_similaridade(ids, docs, embeddings, metadatas)
+        clusters_mesclados = 0
+        for cluster in clusters:
+            if len(cluster) < 2:
+                continue  # nada pra mesclar
+
+            textos_originais = [docs[i] for i in cluster]
+            importancia_maxima = max(int(metadatas[i].get("importancia", 1)) for i in cluster)
+
+            prompt_sintese = (
+                "As frases abaixo são memórias parecidas registradas por um assistente de IA. "
+                "Funda tudo em UMA única frase factual e concisa em português, preservando os "
+                "detalhes que se repetem ou se complementam, sem inventar nada novo. "
+                "Responda APENAS com a frase final.\n\n" + "\n".join(f"- {t}" for t in textos_originais)
+            )
+            try:
+                resposta_sintese = modelo_resumo.generate_content(
+                    prompt_sintese,
+                    generation_config={"max_output_tokens": 150, "temperature": 0.2},
+                    request_options=GEMINI_REQUEST_OPTIONS
+                )
+                texto_consolidado = resposta_sintese.text.strip()
+            except Exception as e:
+                logging.warning(f"[Consolidação] Falha ao sintetizar cluster, mantendo original mais recente: {e}")
+                continue 
+
+            novo_vetor = _sanitizar_vetor(
+                genai.embed_content(
+                    model=EMBEDDING_MODEL,
+                    content=texto_consolidado,
+                    output_dimensionality=EMBEDDING_DIMENSAO
+                )["embedding"]
+            )
+
+            for i in cluster:
+                ids_para_deletar.add(ids[i])
+
+            entradas_para_adicionar.append((
+                str(uuid.uuid4()),
+                texto_consolidado,
+                novo_vetor,
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "tipo": "consolidado",
+                    "importancia": importancia_maxima,
+                    "origem_quantidade": len(cluster),
+                }
+            ))
+            clusters_mesclados += 1
+
+        # --- 2. PODA DE CASUAIS ANTIGAS E POUCO IMPORTANTES ---
+        agora = datetime.now(timezone.utc)
+        podadas = 0
+        for i, mid in enumerate(ids):
+            if mid in ids_para_deletar:
+                continue  # já foi pro cluster de mesclagem, não poda de novo
+            meta = metadatas[i]
+            if meta.get("tipo") != "casual":
+                continue
+            if int(meta.get("importancia", 1)) > PODA_IMPORTANCIA_MAXIMA:
+                continue
+            timestamp_str = meta.get("timestamp")
+            if not timestamp_str:
+                continue  # memória legada sem timestamp: não mexe, fica pra auditoria manual
+            try:
+                data_memoria = datetime.fromisoformat(timestamp_str)
+            except ValueError:
+                continue
+            idade_dias = (agora - data_memoria).days
+            if idade_dias >= PODA_DIAS_LIMITE:
+                ids_para_deletar.add(mid)
+                podadas += 1
+
+        # --- 3. APLICA AS MUDANÇAS NO BANCO ---
+        with _db_io_lock:
+            if ids_para_deletar:
+                colecao_memoria.delete(ids=list(ids_para_deletar))
+            for novo_id, texto, vetor, meta in entradas_para_adicionar:
+                colecao_memoria.add(ids=[novo_id], documents=[texto], embeddings=[vetor], metadatas=[meta])
+
+        sync_local_para_nuvem()
+        _ultima_consolidacao_timestamp = time.time()
+
+        resumo = (
+            f"[Consolidação] Concluída: {clusters_mesclados} grupo(s) mesclado(s), "
+            f"{podadas} memória(s) casual(is) antiga(s) podada(s). "
+            f"Total antes: {len(ids)}, total depois: {len(ids) - len(ids_para_deletar) + len(entradas_para_adicionar)}."
+        )
+        logging.info(resumo)
+        return f"Consolidação concluída: mesclei {clusters_mesclados} grupo(s) de memórias parecidas e podei {podadas} memória(s) antiga(s) sem importância."
+
+    except Exception as e:
+        logging.error(f"[Consolidação] Erro durante a rotina: {e}", exc_info=True)
+        return "Tive um erro tentando consolidar a memória. Os detalhes estão no log."
+    finally:
+        _consolidacao_lock.release()
+
+
+def _monitor_ociosidade():
+    """Thread em background: dispara consolidação automática quando o
+    sistema fica ocioso por tempo suficiente, respeitando o intervalo
+    mínimo entre rodadas."""
+    while True:
+        time.sleep(60)
+        try:
+            ocioso_ha = time.time() - _ultimo_comando_timestamp
+            desde_ultima_consolidacao = time.time() - _ultima_consolidacao_timestamp
+            if (ocioso_ha >= OCIOSIDADE_LIMITE_SEGUNDOS
+                    and desde_ultima_consolidacao >= INTERVALO_MINIMO_ENTRE_CONSOLIDACOES):
+                logging.info(f"[Consolidação] Sistema ocioso há {int(ocioso_ha)}s. Disparando consolidação automática...")
+                consolidar_memoria()
+        except Exception as e:
+            logging.error(f"[Consolidação] Erro no monitor de ociosidade: {e}")
+
+def selecionar_ferramentas(texto_usuario, historico):
+    """Roteador Dinâmico: Reduz tokens de entrada enviando só as ferramentas necessárias."""
+    texto = texto_usuario.lower()
+    nomes_selecionados = {'ler_memorias_recentes', 'executar_comando_terminal'} # Base
+    
+    if any(p in texto for p in ["código", "python", "script", "arquivo", "pasta", "erro", "log", "bug", "projeto", "mapear", "criar", "editar"]):
+        nomes_selecionados.update({'criar_arquivo', 'editar_arquivo', 'adicionar_ao_arquivo', 'ler_arquivo', 'listar_arquivos_pasta', 'mapear_arquitetura_projeto', 'testar_script_python', 'diagnosticar_erros_logs', 'analisar_otimizar_codigo', 'extrair_informacoes_documento', 'gerenciar_memoria_codigo'})
+        
+    if any(p in texto for p in ["processo", "memória", "cpu", "matar", "janela", "abrir", "fechar", "minimizar", "aplicativo", "sistema", "download"]):
+        nomes_selecionados.update({'verificar_uso_sistema', 'listar_processos_pesados', 'matar_processo', 'listar_janelas_abertas', 'gerenciar_janela', 'abrir_pasta', 'organizar_downloads', 'abrir_aplicativo', 'orquestrar_ambiente'})
+        
+    if any(p in texto for p in ["pesquisar", "google", "site", "clima", "tempo", "wikipedia", "solução", "internet"]):
+        nomes_selecionados.update({'abrir_site', 'pesquisar_no_google', 'buscar_resumo_wikipedia', 'buscar_solucao_web', 'verificar_clima'})
+        
+    if any(p in texto for p in ["música", "tocar", "volume", "pausar", "próxima", "áudio", "microfone", "ouvir"]):
+        nomes_selecionados.update({'tocar_musica', 'controlar_midia', 'diagnosticar_audio'})
+    for mensagem in historico:
+        for part in getattr(mensagem, 'parts', []):
+            if getattr(part, 'function_call', None):
+                nomes_selecionados.add(part.function_call.name)
+                
+    ferramentas_filtradas = [func for func in skills_do_jarvis if func.__name__ in nomes_selecionados]
+    logging.info(f"[Roteador Dinâmico] Enviando {len(ferramentas_filtradas)} de {len(skills_do_jarvis)} ferramentas disponíveis.")
+    return ferramentas_filtradas
+# =================================================================
 # 6. LOOP PRINCIPAL (COM TELEMETRIA EXTREMA)
 # =================================================================
 def main():
-    global chat, modelo_escolhido
+    global chat, modelo_escolhido, _ultimo_comando_timestamp
     os.system("cls" if os.name == "nt" else "clear")
     print("=" * 40)
-    print(" SISTEMA JARVIS INICIADO ".center(40, "="))
+    print(" SISTEMA JANUS INICIADO ".center(40, "="))
     print("=" * 40)
+
+    threading.Thread(target=_monitor_ociosidade, daemon=True).start()
+    logging.info("[Consolidação] Monitor de ociosidade iniciado em background.")
 
     speak("Sistemas online e monitoramento por logs ativo, parceria.")
     gatilhos_visao = ["tela", "olhe", "veja", "isso", "print", "erro", "código"]
@@ -547,6 +753,14 @@ def main():
 
         if not user_input:
             logging.info("[RASTREAMENTO] Nenhuma entrada de texto/voz detectada. Reiniciando loop.")
+            continue
+
+        _ultimo_comando_timestamp = time.time()
+
+        if user_input.lower() in ["consolidar memória", "consolidar memoria", "consolide sua memória", "consolide sua memoria"]:
+            logging.info("[RASTREAMENTO] Comando manual de consolidação recebido.")
+            resultado = consolidar_memoria()
+            speak(resultado)
             continue
 
         if user_input.lower() in ["desligar", "sair", "encerrar"]:
@@ -576,20 +790,33 @@ def main():
 
             logging.info(f"[RASTREAMENTO] Passo 4: Invocando API do Gemini (Visão={precisa_ver})...")
             if precisa_ver:
-                logging.info("[RASTREAMENTO] Passo 4.1: Tirando print da tela (ImageGrab)...")
-                print_tela = ImageGrab.grab(all_screens=True)
+                logging.info("[RASTREAMENTO] Passo 4.1: Tirando print da tela e comprimindo imagem...")
+                from PIL import Image # Import injetado localmente
+                
+                # 1. Pega apenas o monitor principal (evita bordas vazias de all_screens)
+                print_tela = ImageGrab.grab()
+                
+                # 2. Redimensiona para o máximo de 1024px de largura (mantendo proporção)
+                largura_base = 1024
+                if print_tela.size[0] > largura_base:
+                    proporcao = (largura_base / float(print_tela.size[0]))
+                    altura_nova = int((float(print_tela.size[1]) * float(proporcao)))
+                    print_tela = print_tela.resize((largura_base, altura_nova), Image.Resampling.LANCZOS)
+                
+                # 3. Converte para tons de cinza (Mata o peso das cores, legibilidade de texto intacta)
+                print_tela = print_tela.convert('L') 
+                
                 conteudo_envio = [comando_enriquecido, print_tela]
             else:
                 conteudo_envio = comando_enriquecido
                 
             logging.info("[RASTREAMENTO] Passo 4.2: Enviando requisição HTTP para a API da Google...")
             
+            ferramentas_turno = selecionar_ferramentas(user_input, chat.history) # <-- ROTEADOR AQUI
+            
             # === SISTEMA DE RESILIÊNCIA: FILA DE MODELOS (FALLBACK) ===
             modelos_fallback = [modelo_escolhido, "models/gemini-2.5-flash", "models/gemini-pro-latest", "models/gemini-flash-latest"]
-            
-            # Remove duplicatas mantendo a ordem de prioridade
             fila_tentativas = list(dict.fromkeys(modelos_fallback))
-            
             response = None
             ultimo_erro = None
             
@@ -597,25 +824,20 @@ def main():
                 try:
                     if modelo_tentativa != modelo_escolhido:
                         logging.warning(f"[Contingência] Tráfego alto! Trocando para o modelo: {modelo_tentativa}...")
-                        
-                        # Instancia o novo modelo
                         fallback_model = genai.GenerativeModel(
                             model_name=modelo_tentativa,
                             system_instruction=system_instruction,
-                            tools=skills_do_jarvis
+                            tools=ferramentas_turno # <-- MUDANÇA AQUI (Usa as filtradas)
                         )
-                        # Clona o histórico do chat atual para o novo modelo não perder o contexto da conversa
                         chat_tentativa = fallback_model.start_chat(history=chat.history, enable_automatic_function_calling=True)
                     else:
                         chat_tentativa = chat
 
-                    # Tenta enviar a mensagem
                     response = chat_tentativa.send_message(
                         conteudo_envio,
                         request_options=GEMINI_REQUEST_OPTIONS
                     )
                     
-                    # Se sobreviveu sem dar erro 503, consolida o modelo novo como o oficial e sai do loop
                     chat = chat_tentativa
                     modelo_escolhido = modelo_tentativa
                     break 
@@ -623,10 +845,9 @@ def main():
                 except (ServiceUnavailable, DeadlineExceeded, ResourceExhausted, RetryError, NotFound) as e:
                     logging.warning(f"[Gemini] Falha ou modelo inativo ({type(e).__name__}) em {modelo_tentativa}. Pulando para o próximo...")
                     ultimo_erro = e
-                    continue # Vai para a próxima iteração tentar o próximo modelo da fila
+                    continue
             
             if not response:
-                # Se esgotou a fila inteira e nenhum respondeu, aí sim joga o erro pro except vermelho final
                 raise ultimo_erro 
             
             logging.info(f"[RASTREAMENTO] Passo 5: Resposta do Gemini recebida com sucesso via {modelo_escolhido}!")
@@ -636,20 +857,59 @@ def main():
             except ValueError:
                 texto_resposta = "Comando executado, meu parceiro."
 
-            clean_text = texto_resposta.replace("*", "").replace("#", "")
+            # --- MÁGICA DA EXTRAÇÃO DA VOZ (BLINDADA) ---
+            # Remove blocos de código sujos e quebras vazias antes de tentar capturar a tag
+            texto_limpo = texto_resposta.strip()
+            
+            # O Regex agora ignora espaços em branco ao redor da tag
+            match_voz = re.search(r'\[VOZ\]\s*(.*?)\s*\[/VOZ\]', texto_limpo, re.DOTALL | re.IGNORECASE)
+            
+            if match_voz:
+                texto_voz = match_voz.group(1).strip()
+                # Tira a tag [VOZ] (e tudo dentro dela) da resposta que vai pra tela
+                texto_tela = re.sub(r'\[VOZ\].*?\[/VOZ\]', '', texto_limpo, flags=re.DOTALL | re.IGNORECASE).strip()
+            else:
+                texto_voz = "Comando processado, aguardando instruções."
+                texto_tela = texto_limpo
+
+            # Limpa firulas de markdown do texto da tela sem estragar blocos de código
+            texto_tela_exibicao = texto_tela.replace("`", "") 
+            
+            print("\n" + "=" * 40)
+            print("[Janus - Resposta completa exibida no console]")
+            print(texto_tela_exibicao)
+            print("=" * 40)
+            
+            if match_voz:
+                texto_voz = match_voz.group(1).strip()
+                texto_tela = texto_resposta.replace(match_voz.group(0), "").strip()
+            else:
+                texto_voz = "Processamento concluído."
+                texto_tela = texto_resposta
+
+            texto_tela_limpo = texto_tela.replace("*", "").replace("#", "")
+            
+            print("\n" + "=" * 40)
+            print("[Janus - Resposta completa exibida no console]")
+            print(texto_tela_limpo)
+            print("=" * 40)
             
             logging.info("[RASTREAMENTO] Passo 6: Sintetizando áudio da resposta (Edge TTS)...")
-            speak(clean_text)
+            speak(texto_voz) 
 
             logging.info("[RASTREAMENTO] Passo 7: Gravando nova interação no ChromaDB...")
-            salvar_memoria_vetorial(user_input, clean_text)
-            
+            salvar_memoria_vetorial(user_input, texto_tela_limpo) # <-- SALVA SÓ A TELA
             logging.info("[RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.")
-            # === PASSO 9: PODA DE MEMÓRIA (JANELA DESLIZANTE) ===
-            LIMITE_MENSAGENS = 20
-            if len(chat.history) > LIMITE_MENSAGENS:
-                logging.info("[RASTREAMENTO] Passo 9: Histórico longo detectado. Resetando buffer de curto prazo (ChromaDB assume)...")
-                chat = model.start_chat(enable_automatic_function_calling=True) # <-- NOVA LINHA AQUI
+            # === PASSO 9: PODA DE MEMÓRIA (GARBAGE COLLECTOR DE IMAGENS) ===
+            logging.info("[RASTREAMENTO] Passo 9: Otimizando histórico de contexto (Poda Visual)...")
+            novo_historico = []
+            for msg in chat.history[-20:]: 
+                partes_limpas = [p for p in msg.parts if not hasattr(p, 'inline_data')]
+                
+                if partes_limpas:
+                    nova_msg = type(msg)(role=msg.role, parts=partes_limpas)
+                    novo_historico.append(nova_msg)
+            chat.history = novo_historico
                 
         except (ServiceUnavailable, DeadlineExceeded, ResourceExhausted, RetryError, NotFound) as e:    
             logging.error(f"[Gemini] API indisponível ou sobrecarregada (alta demanda): {e}")
