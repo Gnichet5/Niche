@@ -32,7 +32,7 @@ logging.basicConfig(
 DEFAULT_MAX_FILE_READ_CHARS = 150000
 DEFAULT_MAX_WEB_SCRAPE_CHARS_PER_PAGE = 3000
 DEFAULT_MAX_FILES_TO_SCAN_SUSPICIOUS = 1500
-DIRETORIO_SEGURO = os.path.abspath(r"C:\Users\guipe\OneDrive\Documents\Niche")
+DIRETORIO_SEGURO = os.path.abspath(r"C:\Users\guipe\Documents\Niche")
 # =================================================================
 # SETOR 1: SISTEMA E HARDWARE
 # Ferramentas para monitoramento de recursos e gerenciamento de processos.
@@ -843,14 +843,19 @@ def ler_memorias_recentes(quantidade: int = 5) -> str:
         return "O banco de dados de memória ainda não foi inicializado pelo sistema principal."
         
     try:
-        dados = colecao_memoria_global.get(limit=quantidade)
-        
+        dados = colecao_memoria_global.get(limit=quantidade, include=["documents", "metadatas"])
+
         if not dados or not dados.get('documents'):
             return "Minha memória está vazia no momento."
-            
+
+        metadatas = dados.get('metadatas') or [{}] * len(dados['documents'])
+
         resposta = f"Aqui estão as {quantidade} memórias extraídas da sessão ativa:\n\n"
         for i, doc in enumerate(dados['documents']):
-            resposta += f"Registro {i+1}: {doc}\n"          
+            meta = metadatas[i] or {}
+            timestamp = meta.get('timestamp', 'sem data')
+            tipo = meta.get('tipo', 'indefinido')
+            resposta += f"Registro {i+1} [{tipo} | {timestamp}]: {doc}\n"
         logging.info(f"O JARVIS auditou e listou as {quantidade} memórias mais recentes.")
         return resposta
         
@@ -1125,3 +1130,37 @@ def testar_script_python(caminho_relativo: str) -> str:
         return "⏱️ ERRO: O script demorou mais de 15 segundos e foi interrompido. Verifique se há loops infinitos ou esperas de input (I/O bloqueante)."
     except Exception as e:
         return f"⚠️ Erro inesperado ao tentar rodar o teste: {e}"
+
+def diagnosticar_audio() -> str:
+    """
+    Executa um diagnóstico rápido nos dispositivos de microfone do sistema.
+    Use esta ferramenta quando o usuário relatar problemas para falar, quando você não estiver ouvindo,
+    ou quando pedirem para você verificar o seu sistema de áudio/voz.
+    """
+    import speech_recognition as sr
+    import logging
+    
+    resultado = "=== DIAGNÓSTICO DO SISTEMA DE ESCUTA ===\n\n"
+    
+    try:
+        mic_list = sr.Microphone.list_microphone_names()
+        if not mic_list:
+            resultado += "[FALHA CRÍTICA] NENHUM MICROFONE DETECTADO PELO SISTEMA OPERACIONAL.\n"
+            return resultado
+            
+        resultado += "Microfones mapeados pelo sistema:\n"
+        for i, nome in enumerate(mic_list):
+            resultado += f"- Dispositivo {i}: {nome}\n"
+            
+        resultado += "\nTestando canal de escuta padrão...\n"
+        with sr.Microphone() as source:
+            resultado += "[SUCESSO] O canal de áudio padrão do Windows foi aberto e o hardware está operante.\n"
+            
+        logging.info("Ferramenta de diagnóstico de áudio executada com sucesso.")
+        
+    except OSError as e:
+        resultado += f"\n[FALHA DE DRIVER] O Windows está bloqueando o acesso ao dispositivo ou ele está em uso exclusivo por outro app. Erro: {e}\n"
+    except Exception as e:
+        resultado += f"\n[ERRO CRÍTICO] Falha inesperada ao testar o hardware: {e}\n"
+        
+    return resultado

@@ -10,6 +10,7 @@ import threading
 import time
 import platform
 import threading
+from datetime import datetime, timezone
 import chromadb
 from chromadb import Documents, EmbeddingFunction, Embeddings
 from chromadb.config import Settings
@@ -20,9 +21,11 @@ from google.api_core.exceptions import ServiceUnavailable, DeadlineExceeded, Res
 import edge_tts
 import pygame
 import tools
+import time
 from PIL import ImageGrab
 from dotenv import load_dotenv
 from google.api_core.exceptions import ServiceUnavailable, DeadlineExceeded, ResourceExhausted, RetryError, NotFound
+from faster_whisper import WhisperModel
 
 faulthandler.enable()
 
@@ -254,8 +257,8 @@ except Exception as e:
 # =================================================================
 logging.info("Absorvendo skills locais do tools.py...")
 skills_do_jarvis = [
-    func for _, func in inspect.getmembers(tools, inspect.isfunction)
-    if func.__module__ == tools.__name__
+    func for nome, func in inspect.getmembers(tools, inspect.isfunction)
+    if func.__module__ == tools.__name__ and not nome.startswith('_')
 ]
 logging.info(f"{len(skills_do_jarvis)} skills carregadas com sucesso.")
 
@@ -274,6 +277,16 @@ except Exception as e:
 # =================================================================
 # 5. FUNÇÕES DE ÁUDIO E MICROFONE
 # =================================================================
+logging.info("Carregando motor auditivo neural (Whisper)...")
+try:
+    # O modelo "small" é o ponto de equilíbrio perfeito entre rapidez e precisão para pt-BR.
+    # O 'device="auto"' tenta usar placa de vídeo se tiver, senão roda solto na CPU.
+    whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
+    logging.info("✅ Ouvido Neural ONLINE!")
+except Exception as e:
+    logging.error(f"Falha ao carregar Whisper. Usando Google nativo como fallback: {e}")
+    whisper_model = None
+
 async def generate_audio(text, filename="resposta.mp3"):
     communicate = edge_tts.Communicate(text, "pt-BR-AntonioNeural", rate="+10%")
     await communicate.save(filename)
@@ -344,17 +357,48 @@ def listen_command():
     with sr.Microphone() as source:
         print("\n[Microfone aberto. Pode falar...]")
         recognizer.adjust_for_ambient_noise(source, duration=0.2)
+        
+        # --- A MÁGICA ACONTECE AQUI ---
+        # Dá 2 segundos de tolerância de silêncio para você respirar/pensar
+        recognizer.pause_threshold = 2.0 
+        
         try:
-            audio = recognizer.listen(source, timeout=5, phrase_time_limit=15)
-            text = recognizer.recognize_google(audio, language="pt-BR")
-            logging.info(f"Usuário (Voz): {text}")
-            return text
+            # 1. Captura o áudio (aumentamos o limite da frase para 30 segundos)
+            audio = recognizer.listen(source, timeout=5, phrase_time_limit=30)
+            
+            # 2. Transcrição com Whisper
+            if whisper_model:
+                nome_temp = "temp_comando_voz.wav"
+                with open(nome_temp, "wb") as f:
+                    f.write(audio.get_wav_data())
+                
+                segments, info = whisper_model.transcribe(
+                    nome_temp, 
+                    beam_size=5, 
+                    language="pt", 
+                    vad_filter=True
+                )
+                
+                text = "".join([segment.text for segment in segments]).strip()
+                
+                if os.path.exists(nome_temp):
+                    os.remove(nome_temp)
+                
+                if text:
+                    logging.info(f"Usuário (Whisper): {text}")
+                    return text
+                return None
+                
+            else:
+                text = recognizer.recognize_google(audio, language="pt-BR")
+                logging.info(f"Usuário (Google): {text}")
+                return text
+                
         except (sr.WaitTimeoutError, sr.UnknownValueError):
             return None
         except Exception as e:
             logging.error(f"Erro crítico no microfone: {e}")
             return None
-
 # =================================================================
 # 5.5 FUNÇÕES DE MEMÓRIA VETORIAL (CÓRTEX)
 # =================================================================
@@ -382,6 +426,12 @@ def _sanitizar_vetor(vetor):
         return [float(v) for v in vetor]
     return vetor
 
+# Distância máxima (métrica L2 padrão do Chroma) pra uma memória ser considerada
+# relevante o suficiente pra entrar no contexto. Comece permissivo (None = sem filtro)
+# enquanto calibra: rode um tempo, olhe os valores de "[Córtex] Distâncias" no log,
+# e defina esse número pouco acima da distância típica de resultados que fazem sentido.
+DISTANCIA_MAXIMA_RELEVANCIA = None  # ex: 0.8 depois de calibrado
+
 def buscar_contexto_vetorial(pergunta_atual, max_resultados=2):
     try:
         if not colecao_memoria or colecao_memoria.count() == 0:
@@ -399,23 +449,51 @@ def buscar_contexto_vetorial(pergunta_atual, max_resultados=2):
         
         resultados = colecao_memoria.query(
             query_embeddings=[vetor_busca],
-            n_results=min(max_resultados, colecao_memoria.count())
+            n_results=min(max_resultados, colecao_memoria.count()),
+            include=["documents", "distances", "metadatas"]
         )
         
-        if resultados["documents"] and resultados["documents"][0]:
-            contexto = " | ".join(resultados["documents"][0])
-            logging.info(f"[Córtex] Resgatou {len(resultados['documents'][0])} lembrança(s).")
+        documentos = resultados["documents"][0] if resultados["documents"] else []
+        distancias = resultados["distances"][0] if resultados.get("distances") else []
+
+        if documentos:
+            logging.info(f"[Córtex] Distâncias dos {len(documentos)} candidato(s): {[round(d, 3) for d in distancias]}")
+
+        # Filtra por relevância: descarta memórias vetorialmente distantes demais
+        # da pergunta atual (evita injetar contexto que não tem nada a ver).
+        if DISTANCIA_MAXIMA_RELEVANCIA is not None and distancias:
+            documentos_relevantes = [
+                doc for doc, dist in zip(documentos, distancias)
+                if dist <= DISTANCIA_MAXIMA_RELEVANCIA
+            ]
+        else:
+            documentos_relevantes = documentos
+
+        if documentos_relevantes:
+            contexto = " | ".join(documentos_relevantes)
+            logging.info(f"[Córtex] Resgatou {len(documentos_relevantes)} lembrança(s) relevante(s) de {len(documentos)} candidata(s).")
             return f"\n\n[INFORMAÇÃO OCULTA DE SISTEMA - CONTEXTO DO PASSADO: {contexto}]"
+        elif documentos:
+            logging.info("[Córtex] Candidatos encontrados, mas nenhum passou no filtro de relevância.")
     except Exception as e:
         logging.error(f"[Córtex] Erro na busca: {e}")
     return ""
 
-def salvar_memoria_vetorial(pergunta, resposta):
+def salvar_memoria_vetorial(pergunta, resposta, tipo="casual", importancia=1):
+    """
+    Grava uma interação no córtex vetorial com metadata estruturada.
+
+    tipo: categoria da memória (ex: "casual", "fato", "preferencia").
+          Por enquanto tudo entra como "casual" — a classificação automática
+          (decidir o que realmente vale virar memória de longo prazo) é a
+          próxima camada a implementar.
+    importancia: escala 1-5, usada futuramente pra priorizar retenção/consolidação.
+    """
     try:
         if colecao_memoria:
             doc_id = str(uuid.uuid4())
             texto_memoria = f"Usuário disse: {pergunta} | JARVIS respondeu: {resposta}"
-            
+
             vetor = _sanitizar_vetor(
                 genai.embed_content(
                     model=EMBEDDING_MODEL,
@@ -423,15 +501,22 @@ def salvar_memoria_vetorial(pergunta, resposta):
                     output_dimensionality=EMBEDDING_DIMENSAO
                 )["embedding"]
             )
-            
+
+            metadata = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "tipo": tipo,
+                "importancia": importancia,
+            }
+
             # 1. Salva muito rápido no SSD local
             with _db_io_lock:
                 colecao_memoria.add(
                     ids=[doc_id],
                     documents=[texto_memoria],
-                    embeddings=[vetor]
+                    embeddings=[vetor],
+                    metadatas=[metadata]
                 )
-            logging.info("[Córtex] Nova memória salva no SSD.")
+            logging.info(f"[Córtex] Nova memória salva no SSD (tipo={tipo}, importância={importancia}).")
             
             # 2. UPLOAD SILENCIOSO PARA A NUVEM!
             sync_local_para_nuvem()
@@ -452,6 +537,8 @@ def main():
     gatilhos_visao = ["tela", "olhe", "veja", "isso", "print", "erro", "código"]
 
     while True:
+        with open("heartbeat.txt", "w") as f:
+            f.write(str(time.time()))
         print("\n" + "-" * 40)
         entrada_inicial = input("[ENTER para falar] ou [Digite seu comando]: ")
         
@@ -558,8 +645,13 @@ def main():
             salvar_memoria_vetorial(user_input, clean_text)
             
             logging.info("[RASTREAMENTO] Passo 8: Ciclo completo com sucesso! Liberando para próxima instrução.")
-
-        except (ServiceUnavailable, DeadlineExceeded, ResourceExhausted, RetryError) as e:
+            # === PASSO 9: PODA DE MEMÓRIA (JANELA DESLIZANTE) ===
+            LIMITE_MENSAGENS = 20
+            if len(chat.history) > LIMITE_MENSAGENS:
+                logging.info("[RASTREAMENTO] Passo 9: Histórico longo detectado. Resetando buffer de curto prazo (ChromaDB assume)...")
+                chat = model.start_chat(enable_automatic_function_calling=True) # <-- NOVA LINHA AQUI
+                
+        except (ServiceUnavailable, DeadlineExceeded, ResourceExhausted, RetryError, NotFound) as e:    
             logging.error(f"[Gemini] API indisponível ou sobrecarregada (alta demanda): {e}")
             speak("A API do Gemini está sobrecarregada no momento. Tente novamente em instantes.")
         except Exception as e:
