@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="janus-token" content="__JANUS_TOKEN__"><title>Janus · Seu assistente pessoal</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="Janus início">janus<span>.</span></a>
+  <p class="brand-caption">Seu espaço de assistência</p>
+  <button id="new-chat" class="new-chat">＋ Nova conversa</button>
+  <nav aria-label="Navegação principal"><button id="nav-chat" class="nav-item active" aria-current="page">Conversa <span>↗</span></button><button id="nav-memory" class="nav-item">Memórias <span>◇</span></button></nav>
+  <div class="sidebar-note"><span class="eyebrow">NESTA SESSÃO</span><p id="conversation-label">Uma nova ideia começa aqui.</p></div>
+  <footer><div class="identity"><span class="avatar">J</span><div>Janus pessoal<small>Gemini · no seu computador</small></div></div><button id="theme" class="quiet">Alternar aparência</button></footer>
+</aside>
+<main>
+  <header class="topbar"><span id="view-title">Nova conversa</span><div class="connection"><span class="status-dot"></span><span id="connection">Interface local</span></div></header>
+  <section id="chat-view" class="chat-view" aria-label="Conversa com Janus">
+    <div id="welcome" class="welcome"><div class="monogram" aria-hidden="true">j.</div><span class="eyebrow">MENOS RUÍDO, MAIS CLAREZA</span><h1>Um pouco mais de espaço<br>para pensar.</h1><p>Converse, explore uma ideia ou deixe o Janus<br class="desktop"> ajudar com o próximo passo.</p><div class="suggestions"><button data-prompt="Qual a previsão do tempo para Camaçari, Bahia, Brasil?"><span class="suggestion-symbol">☀</span><strong>Planejar meu dia</strong><small>Comece pela previsão do tempo</small><span class="arrow">↗</span></button><button data-prompt="Quais processos estão consumindo mais memória no meu computador?"><span class="suggestion-symbol">▤</span><strong>Entender meu computador</strong><small>Veja o que está usando memória</small><span class="arrow">↗</span></button></div></div>
+    <div id="messages" class="messages" role="log" aria-label="Mensagens"></div>
+    <div id="progress" class="progress" role="status" hidden><span class="status-dot"></span><span id="progress-text">Preparando Janus…</span></div>
+    <section id="approval" class="approval" aria-label="Aprovação de ação" hidden><span class="eyebrow">VOCÊ DECIDE</span><h2>O Janus precisa da sua aprovação</h2><p id="approval-name"></p><pre id="approval-args"></pre><p class="muted">Confira os argumentos antes de permitir a ação no computador.</p><div class="button-row"><button id="approve" class="primary">Permitir esta ação</button><button id="deny">Cancelar ação</button></div></section>
+    <div class="composer-area"><div id="attachment" class="attachment" hidden><img id="image-preview" alt="Imagem que será enviada ao Gemini"><span id="image-name"></span><button id="remove-image" aria-label="Remover imagem">Remover</button></div><form id="chat-form" class="composer"><label class="sr-only" for="message-input">Mensagem para o Janus</label><textarea id="message-input" placeholder="O que você quer resolver agora?" rows="2" maxlength="20000" required></textarea><div class="composer-bottom"><div class="composer-tools"><button id="attach" type="button" class="quiet" aria-label="Anexar imagem">＋ Imagem</button><button id="dictate" type="button" class="quiet">Ditar</button><button id="voice" type="button" class="quiet" aria-pressed="false">Voz desligada</button></div><button id="send" type="submit" class="send" aria-label="Enviar mensagem">↑</button></div></form><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><div class="composer-foot"><span id="privacy">Tela não compartilhada · imagens só quando você anexar</span><span>Enter para enviar</span></div></div>
+  </section>
+  <section id="memory-view" class="memory-view" hidden><span class="eyebrow">CONTEXTO QUE VOCÊ CONTROLA</span><h1>O que fica na memória.</h1><p class="muted">Consulte registros do banco local. Esquecer uma memória é permanente e também reinicia o contexto desta conversa.</p><div class="button-row"><button id="refresh-memory">Atualizar memórias</button><span id="memory-count" class="muted"></span></div><div id="memory-list"></div></section>
+  <div id="notice" class="notice" role="alert" hidden></div>
+</main>
+<dialog id="forget-dialog"><h2>Esquecer esta memória?</h2><p>O registro será removido do banco e o contexto da conversa será reiniciado. Esta ação não pode ser desfeita pela interface.</p><div class="button-row"><button id="forget-cancel">Manter memória</button><button id="forget-confirm" class="primary">Esquecer memória</button></div></dialog>
+</body></html>

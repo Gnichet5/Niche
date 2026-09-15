@@ -12,3 +12,5 @@ __pycache__/
 *.pyd
 .vscode/
 .idea/
+memoria_jarvis_v2/
+memoria_janus/

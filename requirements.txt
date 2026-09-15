@@ -13,7 +13,3 @@ requests
 beautifulsoup4
 googlesearch-python
 urllib3
-fastapi
-uvicorn
-pydantic
-pyaudio
