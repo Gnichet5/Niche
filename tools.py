@@ -1,4 +1,5 @@
 import os
+from token_budget import limite_env
 import webbrowser
 import pygetwindow as gw
 import psutil
@@ -11,28 +12,16 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 from googlesearch import search
-import urllib3  
+import urllib3
 import concurrent.futures
 import time
-import subprocess
-from datetime import datetime
-import shutil
-import sys
 
 colecao_memoria_global = None
-os.makedirs("logs_sistema", exist_ok=True)
-arquivo_log = os.path.join("logs_sistema", "jarvis_tools.log")
-_MEMORIA_DE_CODIGO = {}
-
-logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler(arquivo_log, encoding='utf-8')]
-)
-DEFAULT_MAX_FILE_READ_CHARS = 150000
-DEFAULT_MAX_WEB_SCRAPE_CHARS_PER_PAGE = 3000
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+DEFAULT_MAX_FILE_READ_CHARS = 3000
+DEFAULT_MAX_WEB_SCRAPE_CHARS_PER_PAGE = 1000
 DEFAULT_MAX_FILES_TO_SCAN_SUSPICIOUS = 1500
-DIRETORIO_SEGURO = os.path.abspath(r"C:\Users\guipe\Documents\Niche")
+
 # =================================================================
 # SETOR 1: SISTEMA E HARDWARE
 # Ferramentas para monitoramento de recursos e gerenciamento de processos.
@@ -67,7 +56,7 @@ def listar_processos_pesados(quantidade: int = 5) -> str:
 
 def matar_processo(identificador: str) -> str:
     """Encerra um processo travado ou consumindo muita memória no Windows."""
-    
+
     # NOVA LINHA: Proteção anti-rebote para evitar que o processo seja "morto" duas vezes no retry
     if _anti_rebote(f"kill_{identificador}"):
         logging.info(f"Comando de matar processo '{identificador}' ignorado pelo anti-rebote.")
@@ -135,54 +124,43 @@ def listar_arquivos_pasta(caminho: str) -> str:
         if not arquivos:
             logging.info(f"A pasta '{caminho}' está vazia.")
             return "A pasta está vazia."
-        
+
         logging.info(f"Conteúdo da pasta '{caminho}' listado.")
         return f"Conteúdo do diretório: " + ", ".join(arquivos)
-    
+
     except FileNotFoundError:
         return "Aviso: O diretório especificado não existe."
     except PermissionError:
         return "Aviso: Bloqueio de segurança. Não tenho permissão de leitura para esta pasta."
     except OSError:
         return "Aviso: Falha na leitura. O caminho pode estar mal formatado ou inacessível."
-def ler_arquivo(caminho_arquivo: str) -> str:
-    """
-    Lê e retorna o conteúdo de um arquivo local (.py, .json, .log, .md, .txt, etc)
-    para análise de código ou depuração de erros.
-    """
-    caminho_arquivo = caminho_arquivo.strip('\"').strip("\'")
-
-    if not os.path.isfile(caminho_arquivo):
-        logging.error(f"Erro: Arquivo não encontrado em '{caminho_arquivo}'.")
-        return f"Erro: Não foi possível encontrar o arquivo no caminho '{caminho_arquivo}'."
-
-    try:
-        max_chars = int(os.getenv("MAX_FILE_READ_CHARS", str(DEFAULT_MAX_FILE_READ_CHARS)))
-        
-        with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
-            conteudo = arquivo.read(max_chars) # Otimização: Lê direto no limite
-            
-            # Checa se ainda tem bytes sobrando sem precisar carregá-los
-            if arquivo.read(1): 
-                logging.info(f"Arquivo '{caminho_arquivo}' muito grande, lendo os primeiros {max_chars} caracteres.")
-                return f"Arquivo muito grande. Aqui estão os primeiros {max_chars} caracteres:\n\n{conteudo}"
-            
-            logging.info(f"Arquivo '{caminho_arquivo}' lido com sucesso.")
-            return conteudo
-
-    except UnicodeDecodeError:
+def ler_arquivo(caminho_arquivo: str, inicio: int = 0, quantidade: int = 3000) -> str:
+    """Lê trecho de arquivo. inicio é o deslocamento em caracteres; use o próximo inicio para continuar."""
+    caminho_arquivo = caminho_arquivo.strip('"').strip("'")
+    teto = limite_env("MAX_FILE_READ_CHARS", DEFAULT_MAX_FILE_READ_CHARS, minimo=100, maximo=3000)
+    inicio = max(0, inicio)
+    quantidade = max(1, min(quantidade, teto))
+    for encoding in ('utf-8', 'latin-1'):
         try:
-            with open(caminho_arquivo, 'r', encoding='latin-1') as arquivo:
-                logging.info(f"Arquivo '{caminho_arquivo}' lido com encoding latin-1 após falha UTF-8.")
-                return arquivo.read(max_chars) 
-        except Exception as e:
-            logging.error(f"Falha na decodificação do arquivo '{caminho_arquivo}'. Erro: {e}")
-            return f"Falha na decodificação. O arquivo pode não ser texto puro. Erro: {e}"
+            with open(caminho_arquivo, 'r', encoding=encoding) as arquivo:
+                restante = inicio
+                while restante:
+                    bloco = arquivo.read(min(restante, 8192))
+                    if not bloco:
+                        break
+                    restante -= len(bloco)
+                trecho = arquivo.read(quantidade)
+                mais = bool(arquivo.read(1))
+            cabecalho = f"Trecho a partir do caractere {inicio}. "
+            cabecalho += f"Próximo inicio: {inicio + len(trecho)}." if mais else "Fim do arquivo."
+            return cabecalho + "\n" + trecho
+        except UnicodeDecodeError:
+            continue
+        except OSError as e:
+            return f"Não foi possível ler o arquivo: {e}"
+    return "Não foi possível decodificar o arquivo."
 
-    except Exception as e:
-        logging.error(f"Erro inesperado ao tentar ler o arquivo '{caminho_arquivo}': {e}")
-        return f"Erro inesperado ao tentar ler o arquivo: {e}"
-    
+
 def organizar_downloads(caminho: str = None) -> str:
     """
     Organiza automaticamente os arquivos da pasta Downloads do usuário,
@@ -195,7 +173,7 @@ def organizar_downloads(caminho: str = None) -> str:
     if _anti_rebote(f"org_downloads_{caminho}"):
         logging.info(f"Organização da pasta '{caminho}' ignorada pelo anti-rebote.")
         return "Ação ignorada: A faxina nesta pasta já foi iniciada ou concluída nos últimos instantes."
-    
+
     if not os.path.exists(caminho):
         return f"A pasta '{caminho}' não existe ou está inacessível."
 
@@ -213,21 +191,21 @@ def organizar_downloads(caminho: str = None) -> str:
     try:
         for arquivo in os.listdir(caminho):
             caminho_arquivo = os.path.join(caminho, arquivo)
-            
+
             if os.path.isfile(caminho_arquivo):
                 _, extensao = os.path.splitext(arquivo)
                 extensao = extensao.lower()
-                
+
                 pasta_destino_nome = "Outros"
                 for categoria, extensoes in categorias.items():
                     if extensao in extensoes:
                         pasta_destino_nome = categoria
                         break
-                        
+
                 pasta_destino_caminho = os.path.join(caminho, pasta_destino_nome)
                 if not os.path.exists(pasta_destino_caminho):
                     os.makedirs(pasta_destino_caminho)
-                    
+
                 shutil.move(caminho_arquivo, os.path.join(pasta_destino_caminho, arquivo))
                 arquivos_movidos += 1
 
@@ -242,189 +220,6 @@ def organizar_downloads(caminho: str = None) -> str:
         logging.error(f"Erro ao organizar a pasta: {e}")
         return f"Erro ao organizar a pasta: {e}"
 
-def criar_arquivo(caminho_relativo: str, conteudo: str) -> str:
-    """Cria um novo arquivo de texto de forma segura dentro da sandbox."""
-    
-    if _anti_rebote(f"criar_{caminho_relativo}", cooldown_segundos=30):
-        return "Ação ignorada: O comando de criação já foi disparado na tentativa anterior."
-
-    caminho_limpo = caminho_relativo.strip('\"').strip("\'")
-    caminho_absoluto = os.path.abspath(os.path.join(DIRETORIO_SEGURO, caminho_limpo))
-    
-    # Sandboxing
-    if not caminho_absoluto.startswith(DIRETORIO_SEGURO):
-        logging.warning(f"Path Traversal bloqueado na criação: {caminho_absoluto}")
-        return "Acesso negado: Tentativa de criar arquivo fora do diretório seguro."
-
-    if os.path.exists(caminho_absoluto):
-        return "Erro: Este arquivo já existe. Utilize a ferramenta de edição."
-
-    # Human-in-the-Loop
-    print("\n" + "+" * 60)
-    print(" ALERTA DE SEGURANÇA: CRIAÇÃO DE ARQUIVO ".center(60, " "))
-    print("+" * 60)
-    print(f"Alvo: {caminho_absoluto}")
-    print(f"Tamanho do conteúdo: {len(conteudo)} caracteres.")
-    print("-" * 60)
-    
-    confirmacao = input("Permitir a criação deste arquivo? (S/N): ").strip().lower()
-
-    if confirmacao != 's':
-        logging.warning("Criação de arquivo bloqueada pelo usuário.")
-        return "Acesso negado: Criação cancelada pelo usuário."
-
-    try:
-        diretorio = os.path.dirname(caminho_absoluto)
-        if not os.path.exists(diretorio):
-            os.makedirs(diretorio)
-
-        with open(caminho_absoluto, 'w', encoding='utf-8') as f:
-            f.write(conteudo)
-            
-        logging.info(f"Arquivo '{caminho_limpo}' criado com sucesso.")
-        return f"Arquivo '{caminho_limpo}' criado com sucesso no diretório seguro."
-        
-    except Exception as e:
-        logging.error(f"Erro ao criar arquivo '{caminho_absoluto}': {e}")
-        return f"Erro crítico durante a criação: {e}"
-
-def editar_arquivo(caminho_relativo: str, novo_conteudo: str) -> str:
-    """Edita um arquivo existente com restrição de diretório e backup automático versionado."""
-    
-    if _anti_rebote(f"editar_{caminho_relativo}", cooldown_segundos=30):
-        return "Ação ignorada: O comando de edição já foi disparado na tentativa anterior."
-
-    caminho_limpo = caminho_relativo.strip('\"').strip("\'")
-    caminho_absoluto = os.path.abspath(os.path.join(DIRETORIO_SEGURO, caminho_limpo))
-    
-    # Sandboxing
-    if not caminho_absoluto.startswith(DIRETORIO_SEGURO):
-        logging.warning(f"Path Traversal bloqueado na edição: {caminho_absoluto}")
-        return "Acesso negado: Tentativa de editar arquivo fora do diretório seguro."
-
-    if not os.path.exists(caminho_absoluto):
-        return "Erro: Arquivo não encontrado. Utilize a ferramenta de criar arquivo primeiro."
-
-    # Human-in-the-Loop
-    print("\n" + "!" * 60)
-    print(" ALERTA DE SEGURANÇA: SOBRESCRITA DE ARQUIVO ".center(60, " "))
-    print("!" * 60)
-    print(f"Alvo: {caminho_absoluto}")
-    print(f"Atenção: O conteúdo atual será totalmente substituído por um novo bloco de {len(novo_conteudo)} caracteres.")
-    print("-" * 60)
-    
-    confirmacao = input("Permitir a modificação deste arquivo? (S/N): ").strip().lower()
-
-    if confirmacao != 's':
-        logging.warning("Edição de arquivo bloqueada pelo usuário.")
-        return "Acesso negado: O usuário cancelou a modificação do arquivo."
-
-    try:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        caminho_backup = f"{caminho_absoluto}.{timestamp}.bak"
-        shutil.copy2(caminho_absoluto, caminho_backup)
-        logging.info(f"Backup de segurança criado: {caminho_backup}")
-        
-        # Escrita
-        with open(caminho_absoluto, 'w', encoding='utf-8') as f:
-            f.write(novo_conteudo)
-            
-        logging.info(f"Arquivo '{caminho_limpo}' editado com sucesso.")
-        return f"Arquivo '{caminho_limpo}' atualizado com sucesso. O backup de segurança foi salvo com a extensão .{timestamp}.bak"
-        
-    except Exception as e:
-        logging.error(f"Erro crítico ao editar arquivo '{caminho_absoluto}': {e}")
-        return f"Erro crítico durante a edição: {e}"
-
-def adicionar_ao_arquivo(caminho_relativo: str, conteudo: str) -> str:
-    """Adiciona conteúdo ao final de um arquivo existente de forma segura."""
-    
-    if _anti_rebote(f"append_{caminho_relativo}", cooldown_segundos=15):
-        return "Ação ignorada: O comando de adição já foi disparado na tentativa anterior."
-
-    caminho_limpo = caminho_relativo.strip('\"').strip("\'")
-    caminho_absoluto = os.path.abspath(os.path.join(DIRETORIO_SEGURO, caminho_limpo))
-    if not caminho_absoluto.startswith(DIRETORIO_SEGURO):
-        logging.warning(f"Path Traversal bloqueado no append: {caminho_absoluto}")
-        return "Acesso negado: Tentativa de alterar arquivo fora do diretório seguro."
-    print("\n" + "~" * 60)
-    print(" ALERTA: ADIÇÃO DE CONTEÚDO (APPEND) ".center(60, " "))
-    print("~" * 60)
-    print(f"Alvo: {caminho_absoluto}")
-    print(f"Serão inseridos {len(conteudo)} caracteres ao final do arquivo.")
-    print("-" * 60)
-    
-    confirmacao = input("Permitir a adição? (S/N): ").strip().lower()
-
-    if confirmacao != 's':
-        logging.warning("Adição bloqueada pelo usuário.")
-        return "Acesso negado: O usuário cancelou a modificação."
-
-    try:
-        with open(caminho_absoluto, 'a', encoding='utf-8') as f:
-            f.write("\n" + conteudo)
-            
-        logging.info(f"Conteúdo adicionado com sucesso em '{caminho_limpo}'.")
-        return f"Conteúdo adicionado com sucesso ao final do arquivo '{caminho_limpo}'."
-        
-    except Exception as e:
-        logging.error(f"Erro crítico no append '{caminho_absoluto}': {e}")
-        return f"Erro crítico durante a adição: {e}"
-
-def mapear_arquitetura_projeto(caminho_relativo: str = ".") -> str:
-    """
-    Mapeia a árvore de diretórios e arquivos de um projeto.
-    Ignora automaticamente pastas de dependências e compilação pesadas para fornecer 
-    à IA uma visão clara da estrutura do código.
-    """
-    caminho_limpo = caminho_relativo.strip('\"').strip("\'")
-    caminho_absoluto = os.path.abspath(os.path.join(DIRETORIO_SEGURO, caminho_limpo))
-    
-    # Sandboxing de segurança
-    if not caminho_absoluto.startswith(DIRETORIO_SEGURO):
-        logging.warning(f"Path Traversal bloqueado no mapeamento: {caminho_absoluto}")
-        return "Acesso negado: Tentativa de mapear fora do diretório seguro."
-        
-    if not os.path.exists(caminho_absoluto):
-        return f"Erro: O diretório '{caminho_limpo}' não existe."
-    pastas_ignoradas = {
-        '.git', 'node_modules', '.next', 'vendor', 
-        'venv', '.venv', '__pycache__', 'target', 
-        'bin', 'build', 'dist', '.idea', '.vscode'
-    }
-    
-    arvore = []
-    
-    try:
-        for root, dirs, files in os.walk(caminho_absoluto):
-            dirs[:] = [d for d in dirs if d not in pastas_ignoradas]
-            
-            nivel = root.replace(caminho_absoluto, '').count(os.sep)
-            indentacao = ' ' * 4 * nivel
-            pasta_atual = os.path.basename(root)
-            
-            if nivel == 0:
-                arvore.append(f"📁 {pasta_atual if pasta_atual else 'Raiz'}/")
-            else:
-                arvore.append(f"{indentacao}📂 {pasta_atual}/")
-            
-            subindentacao = ' ' * 4 * (nivel + 1)
-            for f in files:
-                if not f.endswith(('.pyc', '.class', '.exe', '.dll', '.so')):
-                    arvore.append(f"{subindentacao}📄 {f}")
-        
-        resultado = "\n".join(arvore)
-        
-        # Proteção contra estouro de limite de tokens do modelo
-        if len(resultado) > 12000:
-            resultado = resultado[:12000] + "\n... [Árvore truncada devido ao tamanho extremo]"
-            
-        logging.info(f"Mapeamento de arquitetura concluído para '{caminho_limpo}'.")
-        return f"--- ARQUITETURA DO PROJETO ({caminho_limpo}) ---\n{resultado}"
-
-    except Exception as e:
-        logging.error(f"Erro ao mapear arquitetura em '{caminho_absoluto}': {e}")
-        return f"Erro crítico ao tentar mapear a arquitetura: {e}"
 # =================================================================
 # SETOR 3: GERENCIAMENTO DE JANELAS
 # Ferramentas para controle da interface visual do sistema operacional.
@@ -508,9 +303,9 @@ def _extrair_texto_url(url, headers, max_chars):
     try:
         response = requests.get(url, headers=headers, timeout=8)
         soup = BeautifulSoup(response.text, 'html.parser')
-        conteudo_tags = soup.find_all(['p', 'pre', 'code', 'article', 'main', 'section', 'div'], 
+        conteudo_tags = soup.find_all(['p', 'pre', 'code', 'article', 'main', 'section', 'div'],
                                        class_=['content', 'post-content', 'article-body', 'entry-content', 'main-content', 'text-content'])
-        
+
         texto_extraido = ""
         for tag in conteudo_tags:
             for script_or_style in tag(["script", "style"]):
@@ -525,7 +320,7 @@ def _extrair_texto_url(url, headers, max_chars):
 
 def buscar_solucao_web(pergunta: str) -> str:
     """Pesquisa qualquer tipo de informação na internet de forma assíncrona."""
-    logging.info(f"JARVIS pesquisando na web por: {pergunta}")
+    logging.info(f"Janus pesquisando na web por: {pergunta}")
     resultados_texto = f"Resultados da pesquisa para: {pergunta}\n\n"
 
     try:
@@ -630,7 +425,7 @@ def _anti_rebote(id_comando: str, cooldown_segundos: int = 15) -> bool:
     if id_comando in _REGISTRO_EXECUCOES:
         if (agora - _REGISTRO_EXECUCOES[id_comando]) < cooldown_segundos:
             return True
-            
+
     _REGISTRO_EXECUCOES[id_comando] = agora
     return False
 
@@ -662,7 +457,7 @@ def abrir_aplicativo(nome_app: str) -> str:
             os.path.join(os.environ.get('PROGRAMDATA', 'C:\\ProgramData'), r'Microsoft\Windows\Start Menu\Programs'),
             os.path.join(os.environ.get('APPDATA', ''), r'Microsoft\Windows\Start Menu\Programs')
         ]
-        
+
         for pasta in pastas_iniciar:
             if not os.path.exists(pasta):
                 continue
@@ -675,7 +470,7 @@ def abrir_aplicativo(nome_app: str) -> str:
     # Consulta no dicionário (RAM) em vez do HD
     caminho_completo = None
     nome_encontrado = None
-    
+
     for nome_atalho, caminho in _CACHE_ATALHOS.items():
         if nome_busca in nome_atalho or nome_atalho in nome_busca:
             caminho_completo = caminho
@@ -696,7 +491,7 @@ def abrir_aplicativo(nome_app: str) -> str:
         return f"Enviada a requisição de '{nome_busca}' direto para o sistema."
     except Exception as e:
         return f"Não consegui localizar nenhum software chamado '{nome_app}'. Erro: {e}"
-    
+
 def tocar_musica(pesquisa: str, plataforma: str = 'spotify') -> str:
     """Busca e prepara para tocar uma música, artista ou playlist no Spotify ou YouTube."""
     termo_formatado = urllib.parse.quote(pesquisa)
@@ -742,7 +537,7 @@ def controlar_midia(acao: str) -> str:
 
 def orquestrar_ambiente(cenario: str) -> str:
     """
-    Prepara o ambiente de trabalho abrindo os programas, terminais e sites necessários 
+    Prepara o ambiente de trabalho abrindo os programas, terminais e sites necessários
     para um cenário específico (ex: 'expediente', 'nuvem', 'encerrar').
     """
     cenario = cenario.lower()
@@ -759,14 +554,14 @@ def orquestrar_ambiente(cenario: str) -> str:
         os.system("start cmd.exe /k echo [Ambiente AWS CLI Pronto]")
         logging.info("Modo Escola da Nuvem ativado.")
         return "Modo Escola da Nuvem ativado. Console da AWS e terminal prontos."
-        
+
     elif "limpar" in cenario or "encerrar" in cenario or "fim" in cenario:
         processos_a_encerrar = ['code.exe', 'node.exe', 'python.exe', 'npm.exe', 'git.exe']
         for proc_name in processos_a_encerrar:
             os.system(f"taskkill /F /IM {proc_name} /T >nul 2>&1")
         logging.info("Ambiente limpo. Processos de desenvolvimento encerrados.")
         return "Ambiente limpo. Processos de desenvolvimento e relacionados encerrados."
-        
+
     else:
         logging.warning(f"Cenário '{cenario}' não reconhecido.")
         return f"Cenário '{cenario}' não reconhecido. Opções: Expediente, Nuvem ou Encerrar."
@@ -777,23 +572,25 @@ def orquestrar_ambiente(cenario: str) -> str:
 # =================================================================
 
 def executar_comando_terminal(comando: str) -> str:
-    """
-    Executa comandos de INFRAESTRUTURA no terminal (ex: pip install, ping, tasklist).
-    PROIBIDO: Não utilize esta ferramenta para executar ou testar scripts Python (.py).
-    Para rodar código Python local, utilize EXCLUSIVAMENTE a ferramenta 'testar_script_python'.
-    Requer aprovação manual do usuário antes de rodar.
-    Inclui proteção anti-rebote.
-    """
+    """Executa um comando no terminal com proteção anti-rebote."""
+
     # NOVA LINHA: Evita que o fallback do Gemini rode o mesmo comando 2x seguidas
     if _anti_rebote(f"cmd_{comando}"):
         logging.info(f"Comando '{comando}' ignorado pelo anti-rebote (duplicata de fallback).")
         return "Comando ignorado para evitar execução duplicada pelo sistema de contingência."
+    """
+    Executa um comando diretamente no terminal/prompt do sistema operacional.
+    O Janus pode usar isso para instalar pacotes (pip install), verificar processos,
+    ou rodar scripts. Requer aprovação manual do usuário antes de rodar.
 
+    Args:
+        comando (str): O comando de terminal a ser executado.
+    """
     # Pausa o loop e pede aprovação no console
     print("\n" + "!" * 50)
     print(" ALERTA DE SEGURANÇA: AVALIAÇÃO DE COMANDO ".center(50, " "))
     print("!" * 50)
-    print(f"O JARVIS elaborou um plano e deseja rodar o seguinte comando:\n\n>  {comando}\n")
+    print(f"O Janus elaborou um plano e deseja rodar o seguinte comando:\n\n>  {comando}\n")
 
     confirmacao = input("Permitir a execução? (S/N): ").strip().lower()
 
@@ -830,6 +627,7 @@ def executar_comando_terminal(comando: str) -> str:
         logging.critical(f"Erro crítico ao tentar acessar o terminal para '{comando}': {str(e)}")
         return f"Erro crítico ao tentar acessar o terminal: {str(e)}"
 
+
 # =================================================================
 # SETOR 8: MEMÓRIA E COGNIÇÃO
 # Ferramentas para o assistente auditar a própria base de dados vetorial.
@@ -838,329 +636,47 @@ def executar_comando_terminal(comando: str) -> str:
 def ler_memorias_recentes(quantidade: int = 5) -> str:
     """Audita a base de dados vetorial usando a conexão já ativa na RAM."""
     global colecao_memoria_global
-    
+
     if not colecao_memoria_global:
         return "O banco de dados de memória ainda não foi inicializado pelo sistema principal."
-        
+
     try:
-        dados = colecao_memoria_global.get(limit=quantidade, include=["documents", "metadatas"])
+        dados = colecao_memoria_global.get(limit=quantidade)
 
         if not dados or not dados.get('documents'):
             return "Minha memória está vazia no momento."
 
-        metadatas = dados.get('metadatas') or [{}] * len(dados['documents'])
-
         resposta = f"Aqui estão as {quantidade} memórias extraídas da sessão ativa:\n\n"
         for i, doc in enumerate(dados['documents']):
-            meta = metadatas[i] or {}
-            timestamp = meta.get('timestamp', 'sem data')
-            tipo = meta.get('tipo', 'indefinido')
-            resposta += f"Registro {i+1} [{tipo} | {timestamp}]: {doc}\n"
-        logging.info(f"O JARVIS auditou e listou as {quantidade} memórias mais recentes.")
+            resposta += f"Registro {i+1}: {doc}\n"
+        logging.info(f"O Janus auditou e listou as {quantidade} memórias mais recentes.")
         return resposta
-        
+
     except Exception as e:
         logging.error(f"Falha na ferramenta de leitura de memória vetorial: {e}")
         return f"Tentei acessar o banco de memórias, mas ocorreu um erro técnico: {e}"
-# =================================================================
-# SETOR 9: ANÁLISE E INTELIGÊNCIA
-# Ferramentas para interpretação, diagnóstico de logs, otimização de código e extração de dados.
-# =================================================================
-
-def _caminho_sandbox(caminho_relativo: str) -> str:
-    """Valida se o caminho solicitado pela IA está dentro do DIRETORIO_SEGURO."""
-    caminho_limpo = caminho_relativo.strip('\"').strip("\'")
-    caminho_absoluto = os.path.abspath(os.path.join(DIRETORIO_SEGURO, caminho_limpo))
-    if not caminho_absoluto.startswith(DIRETORIO_SEGURO):
-        raise PermissionError(f"Acesso negado: Tentativa de leitura fora da sandbox ({caminho_absoluto}).")
-    if not os.path.isfile(caminho_absoluto):
-        raise FileNotFoundError(f"Erro: O arquivo '{caminho_limpo}' não foi encontrado.")
-    return caminho_absoluto
-
-def diagnosticar_erros_logs(caminho_log: str) -> str:
-    """Diagnostica erros, avisos e padrões críticos em arquivos de log."""
-    try:
-        caminho_seguro = _caminho_sandbox(caminho_log)
-    except (PermissionError, FileNotFoundError) as e:
-        return str(e)
-
-    try:
-        erros, avisos, excepcoes = [], [], []
-        total_linhas = 0
-
-        # Otimização: Leitura iterativa (não explode a RAM com logs gigantes)
-        try:
-            arquivo = open(caminho_seguro, 'r', encoding='utf-8')
-        except UnicodeDecodeError:
-            arquivo = open(caminho_seguro, 'r', encoding='latin-1')
-
-        with arquivo as f:
-            for num, linha in enumerate(f, 1):
-                total_linhas += 1
-                l_upper = linha.upper()
-                if "ERROR" in l_upper or "CRITICAL" in l_upper or "FATAL" in l_upper:
-                    erros.append((num, linha.strip()))
-                elif "WARNING" in l_upper or "WARN" in l_upper:
-                    avisos.append((num, linha.strip()))
-                elif "EXCEPTION" in l_upper or "TRACEBACK" in l_upper:
-                    excepcoes.append((num, linha.strip()))
-
-        relatorio = f"--- DIAGNÓSTICO DE LOGS: {os.path.basename(caminho_seguro)} ---\n"
-        relatorio += f"Total de linhas analisadas: {total_linhas}\n"
-        relatorio += f"Erros/Críticos detectados: {len(erros)}\n"
-        relatorio += f"Exceções/Tracebacks detectados: {len(excepcoes)}\n"
-        relatorio += f"Avisos (Warnings) detectados: {len(avisos)}\n\n"
-
-        if erros:
-            relatorio += "--- PRINCIPAIS ERROS DETECTADOS ---\n"
-            for num, err in erros[-10:]:
-                relatorio += f"Linha {num}: {err}\n"
-            relatorio += "\n"
-
-        if excepcoes:
-            relatorio += "--- EXCEÇÕES / TRACEBACKS ---\n"
-            for num, exc in excepcoes[-5:]:
-                relatorio += f"Linha {num}: {exc}\n"
-            relatorio += "\n"
-
-        if avisos and not erros:
-            relatorio += "--- AMOSTRA DE AVISOS ---\n"
-            for num, av in avisos[-5:]:
-                relatorio += f"Linha {num}: {av}\n"
-            relatorio += "\n"
-
-        if not erros and not excepcoes and not avisos:
-            relatorio += "Nenhum erro, exceção ou aviso relevante foi encontrado no log."
-
-        return relatorio
-
-    except Exception as e:
-        return f"Erro ao analisar o arquivo de log: {e}"
-
-
-def analisar_otimizar_codigo(caminho_codigo: str) -> str:
-    """Analisar a estrutura de um script e apontar métricas, potenciais gargalos e oportunidades de refatoração."""
-    import ast
-    try:
-        caminho_seguro = _caminho_sandbox(caminho_codigo)
-    except (PermissionError, FileNotFoundError) as e:
-        return str(e)
-
-    try:
-        # Prevenção de estouro de memória e quebra de Encoding
-        try:
-            with open(caminho_seguro, 'r', encoding='utf-8') as f:
-                conteudo = f.read(150000)
-        except UnicodeDecodeError:
-            with open(caminho_seguro, 'r', encoding='latin-1') as f:
-                conteudo = f.read(150000)
-
-        linhas = conteudo.splitlines()
-        total_linhas = len(linhas)
-        linhas_codigo = [l for l in linhas if l.strip() and not l.strip().startswith('#')]
-        linhas_comentario = [l for l in linhas if l.strip().startswith('#')]
-
-        funcoes = []
-        classes = []
-        sintaxe_valida = True
-        erro_sintaxe = ""
-
-        try:
-            arvore = ast.parse(conteudo, filename=caminho_seguro)
-            for node in ast.walk(arvore):
-                if isinstance(node, ast.FunctionDef):
-                    funcoes.append(node.name)
-                elif isinstance(node, ast.ClassDef):
-                    classes.append(node.name)
-        except SyntaxError as se:
-            sintaxe_valida = False
-            erro_sintaxe = f"Erro de sintaxe na linha {se.lineno}: {se.msg}"
-
-        relatorio = f"--- ANÁLISE DE ESTRUTURA E OTIMIZAÇÃO: {os.path.basename(caminho_seguro)} ---\n"
-        relatorio += f"Sintaxe Válida: {'Sim' if sintaxe_valida else 'Não'}\n"
-        relatorio += f"Total de Linhas (Amostra lida): {total_linhas} (Código: {len(linhas_codigo)}, Comentários/Docs: {len(linhas_comentario)})\n"
-        relatorio += f"Classes encontradas ({len(classes)}): {', '.join(classes) if classes else 'Nenhuma'}\n"
-        relatorio += f"Funções encontradas ({len(funcoes)}): {', '.join(funcoes) if funcoes else 'Nenhuma'}\n\n"
-
-        if not sintaxe_valida:
-            relatorio += f"ATENÇÃO: {erro_sintaxe}\n\n"
-
-        relatorio += "--- CONTEÚDO DO CÓDIGO PARA REVISÃO E OTIMIZAÇÃO ---\n"
-        relatorio += conteudo[:5000]
-        if len(conteudo) > 5000:
-            relatorio += "\n\n[Conteúdo truncado para análise...]"
-
-        return relatorio
-
-    except Exception as e:
-        return f"Erro ao analisar o arquivo de código: {e}"
-
-
-def extrair_informacoes_documento(caminho_documento: str, foco: str = None) -> str:
-    """Processa textos longos e documentos para sintetizar e extrair informações relevantes ou específicas."""
-    try:
-        caminho_seguro = _caminho_sandbox(caminho_documento)
-    except (PermissionError, FileNotFoundError) as e:
-        return str(e)
-
-    try:
-        try:
-            with open(caminho_seguro, 'r', encoding='utf-8') as f:
-                conteudo = f.read(150000)
-        except UnicodeDecodeError:
-            with open(caminho_seguro, 'r', encoding='latin-1') as f:
-                conteudo = f.read(150000)
-
-        total_caracteres = len(conteudo)
-        palavras = conteudo.split()
-        total_palavras = len(palavras)
-
-        linhas = conteudo.splitlines()
-        paragrafos = [p for p in conteudo.split('\n\n') if p.strip()]
-
-        relatorio = f"--- EXTRAÇÃO DE DOCUMENTO: {os.path.basename(caminho_seguro)} ---\n"
-        relatorio += f"Total de Palavras: {total_palavras} | Caracteres: {total_caracteres} | Parágrafos: {len(paragrafos)}\n"
-
-        if foco:
-            termo_foco = foco.lower()
-            ocorrencias = [l.strip() for l in linhas if termo_foco in l.lower()]
-            relatorio += f"Foco de Busca: '{foco}' ({len(ocorrencias)} ocorrências encontradas)\n\n"
-            if ocorrencias:
-                relatorio += "--- EXTRATOS RELACIONADOS AO FOCO ---\n"
-                for oc in ocorrencias[:10]:
-                    relatorio += f"- {oc}\n"
-                relatorio += "\n"
-        else:
-            relatorio += "\n"
-
-        relatorio += "--- AMOSTRA DO CONTEÚDO PARA SÍNTESE EXECUTIVA ---\n"
-        relatorio += conteudo[:4000]
-        if len(conteudo) > 4000:
-            relatorio += "\n\n[Documento truncado para síntese...]"
-
-        return relatorio
-
-    except Exception as e:
-        return f"Erro ao processar o documento: {e}"
-
-def gerenciar_memoria_codigo(acao: str, chave: str = "", conteudo: str = "") -> str:
-    """
-    Um 'clipboard' interno para a IA armazenar e consultar trechos de código,
-    assinaturas de funções ou resumos de arquivos enquanto trabalha em múltiplos arquivos.
-    Ações permitidas: 'salvar', 'consultar', 'listar', 'limpar'.
-    """
-    global _MEMORIA_DE_CODIGO
-    acao = acao.lower().strip()
-
-    if acao == 'salvar':
-        if not chave or not conteudo:
-            return "Erro: Para 'salvar', você deve fornecer uma 'chave' (ex: nome do arquivo) e o 'conteudo'."
-        _MEMORIA_DE_CODIGO[chave] = conteudo
-        logging.info(f"Contexto de código salvo na RAM sob a chave '{chave}'.")
-        return f"Contexto salvo com sucesso na chave '{chave}'. Tamanho: {len(conteudo)} caracteres."
-    
-    elif acao == 'consultar':
-        if not chave:
-            return "Erro: Forneça a 'chave' que deseja consultar."
-        if chave in _MEMORIA_DE_CODIGO:
-            return f"--- CONTEÚDO DA CHAVE '{chave}' ---\n{_MEMORIA_DE_CODIGO[chave]}"
-        return f"Aviso: Nenhuma memória de código encontrada para a chave '{chave}'."
-    
-    elif acao == 'listar':
-        if not _MEMORIA_DE_CODIGO:
-            return "A memória de contexto de código está vazia no momento."
-        chaves = ", ".join(_MEMORIA_DE_CODIGO.keys())
-        return f"Chaves atualmente armazenadas no seu bloco de notas: {chaves}"
-    
-    elif acao == 'limpar':
-        if chave:
-            if chave in _MEMORIA_DE_CODIGO:
-                del _MEMORIA_DE_CODIGO[chave]
-                return f"Chave '{chave}' removida da memória de trabalho."
-            return f"A chave '{chave}' não existe."
-        else:
-            _MEMORIA_DE_CODIGO.clear()
-            logging.info("Memória de código global (RAM) limpa.")
-            return "Toda a memória de contexto temporária foi apagada."
-    else:
-        return "Ação inválida. Use uma das opções: 'salvar', 'consultar', 'listar' ou 'limpar'."
-    
-def testar_script_python(caminho_relativo: str) -> str:
-    """
-    A ÚNICA ferramenta permitida para executar, testar e debugar scripts Python.
-    Executa o script dentro da sandbox e captura a saída ou o erro (Traceback).
-    OBRIGATÓRIO usar esta ferramenta para TDD (Test-Driven Development) e Auto-Cura.
-    """
-    if _anti_rebote(f"testar_{caminho_relativo}", cooldown_segundos=10):
-        return "Ação ignorada: O teste já foi disparado na tentativa anterior."
-    
-    try:
-        caminho_seguro = _caminho_sandbox(caminho_relativo)
-    except (PermissionError, FileNotFoundError) as e:
-        return str(e)
-        
-    # Human-in-the-Loop
-    print("\n" + "*" * 60)
-    print(" ALERTA: EXECUÇÃO DE TESTE DE CÓDIGO (AUTO-CURA) ".center(60, " "))
-    print("*" * 60)
-    print(f"Alvo: {caminho_seguro}")
-    print("-" * 60)
-    
-    confirmacao = input("Permitir execução do script para teste? (S/N): ").strip().lower()
-    if confirmacao != 's':
-        logging.warning("Teste de código bloqueado pelo usuário.")
-        return "Acesso negado: Teste cancelado pelo usuário."
-        
-    logging.info(f"Executando teste no script: {caminho_seguro}")
-    try:
-        # Roda o script usando o mesmo executável Python do sistema
-        resultado = subprocess.run([sys.executable, caminho_seguro], capture_output=True, text=True, timeout=15)
-        
-        saida_padrao = resultado.stdout.strip()
-        saida_erro = resultado.stderr.strip()
-        
-        if resultado.returncode == 0:
-            return f"✅ TESTE BEM-SUCEDIDO!\nSaída:\n{saida_padrao}"
-        else:
-            # O pulo do gato: A IA recebe uma instrução de correção junto com o erro
-            return f"❌ FALHA NO TESTE (Código {resultado.returncode}).\nTraceback:\n{saida_erro}\n\n[INSTRUÇÃO PARA IA]: Analise o Traceback acima, utilize a ferramenta 'editar_arquivo' para corrigir a falha e chame 'testar_script_python' novamente até o teste passar."
-            
-    except subprocess.TimeoutExpired:
-        logging.error(f"Erro: O script '{caminho_seguro}' entrou em loop infinito ou demorou demais.")
-        return "⏱️ ERRO: O script demorou mais de 15 segundos e foi interrompido. Verifique se há loops infinitos ou esperas de input (I/O bloqueante)."
-    except Exception as e:
-        return f"⚠️ Erro inesperado ao tentar rodar o teste: {e}"
-
-def diagnosticar_audio() -> str:
-    """
-    Executa um diagnóstico rápido nos dispositivos de microfone do sistema.
-    Use esta ferramenta quando o usuário relatar problemas para falar, quando você não estiver ouvindo,
-    ou quando pedirem para você verificar o seu sistema de áudio/voz.
-    """
-    import speech_recognition as sr
-    import logging
-    
-    resultado = "=== DIAGNÓSTICO DO SISTEMA DE ESCUTA ===\n\n"
-    
-    try:
-        mic_list = sr.Microphone.list_microphone_names()
-        if not mic_list:
-            resultado += "[FALHA CRÍTICA] NENHUM MICROFONE DETECTADO PELO SISTEMA OPERACIONAL.\n"
-            return resultado
-            
-        resultado += "Microfones mapeados pelo sistema:\n"
-        for i, nome in enumerate(mic_list):
-            resultado += f"- Dispositivo {i}: {nome}\n"
-            
-        resultado += "\nTestando canal de escuta padrão...\n"
-        with sr.Microphone() as source:
-            resultado += "[SUCESSO] O canal de áudio padrão do Windows foi aberto e o hardware está operante.\n"
-            
-        logging.info("Ferramenta de diagnóstico de áudio executada com sucesso.")
-        
-    except OSError as e:
-        resultado += f"\n[FALHA DE DRIVER] O Windows está bloqueando o acesso ao dispositivo ou ele está em uso exclusivo por outro app. Erro: {e}\n"
-    except Exception as e:
-        resultado += f"\n[ERRO CRÍTICO] Falha inesperada ao testar o hardware: {e}\n"
-        
-    return resultado
+# Registro explícito: auxiliares como _anti_rebote e _extrair_texto_url
+# não devem ser enviadas ao modelo como ferramentas executáveis.
+FERRAMENTAS_JANUS = (
+    verificar_uso_sistema,
+    listar_processos_pesados,
+    matar_processo,
+    abrir_site,
+    abrir_pasta,
+    listar_arquivos_pasta,
+    ler_arquivo,
+    organizar_downloads,
+    listar_janelas_abertas,
+    gerenciar_janela,
+    pesquisar_no_google,
+    buscar_resumo_wikipedia,
+    buscar_solucao_web,
+    verificar_clima,
+    verificar_arquivos_suspeitos,
+    abrir_aplicativo,
+    tocar_musica,
+    controlar_midia,
+    orquestrar_ambiente,
+    executar_comando_terminal,
+    ler_memorias_recentes,
+)
