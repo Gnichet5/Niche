@@ -11,6 +11,10 @@ LEITURAS = {'verificar_uso_sistema', 'listar_processos_pesados', 'listar_arquivo
             'ler_arquivo', 'buscar_resumo_wikipedia', 'buscar_solucao_web', 'verificar_clima',
             'verificar_arquivos_suspeitos', 'listar_janelas_abertas', 'ler_memorias_recentes'}
 
+# Ferramentas que já chamam confirmar_acao() por conta própria (dentro de tools.py).
+# Ficam de fora da confirmação automática do decorate() para não pedir aprovação em dobro.
+CONFIRMACAO_PROPRIA = {'executar_comando_terminal', 'escrever_arquivo', 'substituir_trecho_arquivo'}
+
 
 class Session:
     def __init__(self):
@@ -50,7 +54,7 @@ class Session:
                 params = inspect.signature(func).bind(*args, **kwargs)
                 params.apply_defaults()
                 name = func.__name__
-                if name not in LEITURAS and name != 'executar_comando_terminal':
+                if name not in LEITURAS and name not in CONFIRMACAO_PROPRIA:
                     if not confirmar_acao(name, dict(params.arguments)):
                         actions.append({'name': name, 'status': 'Cancelada'})
                         return 'Ação cancelada pelo usuário. Não tente outra ferramenta para contornar a decisão.'
@@ -98,10 +102,28 @@ class Session:
                 except errors:
                     if index == len(models)-1:
                         raise
-            try:
-                answer = response.text
-            except ValueError:
-                answer = 'O modelo não retornou texto. Confira as ações antes de repetir o pedido.'
+                # ---> CAPTURA DE EXCEÇÕES ATUALIZADA <---
+                except Exception as e:
+                    nome_erro = type(e).__name__
+                    if nome_erro == 'StopCandidateException':
+                        response = 'erro_tokens'
+                        break 
+                    elif nome_erro == 'RuntimeError' and 'Limite de chamadas' in str(e):
+                        response = 'erro_loop'
+                        break
+                    raise # Repassa o erro caso seja algo desconhecido
+
+            # ---> TRATAMENTO DE RESPOSTA ATUALIZADO <---
+            if response == 'erro_tokens':
+                answer = 'Houve uma falha na geração da ferramenta, provavelmente porque o limite de tokens estourou. Tente pedir uma alteração menor ou em partes.'
+            elif response == 'erro_loop':
+                answer = 'Ação interrompida: Limite de chamadas de ferramentas por turno atingido. Eu já fiz várias alterações em sequência, confira os resultados parciais antes de continuarmos.'
+            else:
+                try:
+                    answer = response.text
+                except (ValueError, AttributeError):
+                    answer = 'O modelo não retornou texto. Confira as ações antes de repetir o pedido.'
+                    
             if not answer.strip():
                 answer = 'A resposta veio vazia. Tente reformular o pedido.'
             self.context.adicionar(text, answer)

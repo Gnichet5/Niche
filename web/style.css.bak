@@ -279,7 +279,7 @@ main { margin-left: var(--sidebar-space); min-height: 100vh; }
 .composer-area { margin-top: auto; padding-top: 22px; }
 .composer { border-radius: 22px; padding: 19px 19px 13px; }
 .composer:focus-within { border-color: var(--text-secondary); box-shadow: var(--hover-glow); transition: var(--motion-water); }
-textarea { display: block; resize: vertical; min-height: 60px; max-height: 240px; width: 100%; border: 0; background: transparent; font-size: 14px; padding: 0 4px 8px; margin-bottom: 12px; }
+textarea { display: block; resize: vertical; min-height: 60px; max-height: 240px; width: 100%; border: 0; background: transparent; font-size: 14px; padding: 0 4px; }
 textarea::placeholder { color: var(--text-secondary); }
 .composer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .composer-tools { display: flex; gap: 4px; flex-wrap: wrap; }

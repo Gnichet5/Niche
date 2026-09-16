@@ -118,6 +118,7 @@ def make_server(port=8765, app=None):
             if self.path == '/api/status':
                 return self.reply(200, app.snapshot())
             files = {'/': ('index.html', 'text/html; charset=utf-8'),
+                     '/neural-background.js': ('neural-background.js', 'text/javascript; charset=utf-8'),
                      '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
                      '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if self.path not in files:

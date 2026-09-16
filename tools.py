@@ -1,4 +1,5 @@
 import os
+import shutil
 from janus.permissions import confirmar_acao as _confirmar_acao
 from weather_service import consultar_clima as _consultar_clima
 from token_budget import limite_env
@@ -21,6 +22,7 @@ import time
 colecao_memoria_global = None
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 DEFAULT_MAX_FILE_READ_CHARS = 3000
+DEFAULT_MAX_FILE_WRITE_CHARS = 6000
 DEFAULT_MAX_WEB_SCRAPE_CHARS_PER_PAGE = 1000
 DEFAULT_MAX_FILES_TO_SCAN_SUSPICIOUS = 1500
 
@@ -140,8 +142,8 @@ def ler_arquivo(caminho_arquivo: str, inicio: int = 0, quantidade: int = 3000) -
     """Lê trecho de arquivo. inicio é o deslocamento em caracteres; use o próximo inicio para continuar."""
     caminho_arquivo = caminho_arquivo.strip('"').strip("'")
     teto = limite_env("MAX_FILE_READ_CHARS", DEFAULT_MAX_FILE_READ_CHARS, minimo=100, maximo=3000)
-    inicio = max(0, inicio)
-    quantidade = max(1, min(quantidade, teto))
+    inicio = max(0, int(inicio))
+    quantidade = max(1, min(int(quantidade), teto))
     for encoding in ('utf-8', 'latin-1'):
         try:
             with open(caminho_arquivo, 'r', encoding=encoding) as arquivo:
@@ -161,6 +163,102 @@ def ler_arquivo(caminho_arquivo: str, inicio: int = 0, quantidade: int = 3000) -
         except OSError as e:
             return f"Não foi possível ler o arquivo: {e}"
     return "Não foi possível decodificar o arquivo."
+
+
+def escrever_arquivo(caminho_arquivo: str, conteudo: str, modo: str = 'sobrescrever') -> str:
+    """
+    Cria, sobrescreve ou anexa conteúdo de texto em um arquivo — sem passar pelo terminal.
+    Sempre faz backup (.bak) do arquivo original antes de sobrescrever.
+    Use para gerar arquivos novos ou reescritas completas pequenas/médias.
+    Para arquivos grandes, prefira múltiplas chamadas com modo='anexar' em vez de mandar
+    tudo de uma vez, e para ajustes pontuais em arquivos existentes prefira
+    substituir_trecho_arquivo. Requer aprovação manual do usuário.
+
+    Args:
+        caminho_arquivo (str): Caminho completo do arquivo a ser escrito.
+        conteudo (str): Conteúdo de texto a ser gravado nesta chamada.
+        modo (str): 'sobrescrever' (padrão, substitui todo o conteúdo) ou 'anexar' (adiciona ao final).
+    """
+    caminho_arquivo = caminho_arquivo.strip('"').strip("'")
+
+    if modo not in ('sobrescrever', 'anexar'):
+        return "Modo inválido. Use 'sobrescrever' ou 'anexar'."
+
+    teto = limite_env("MAX_FILE_WRITE_CHARS", DEFAULT_MAX_FILE_WRITE_CHARS, minimo=500, maximo=20000)
+    if len(conteudo) > teto:
+        return (f"Conteúdo rejeitado: {len(conteudo)} caracteres excede o limite de {teto} por chamada. "
+                f"Divida a escrita em múltiplas chamadas com modo='anexar'.")
+
+    if not _confirmar_acao("escrever_arquivo", {"caminho": caminho_arquivo, "modo": modo, "tamanho": len(conteudo)}):
+        return "Acesso negado: o usuário cancelou a escrita do arquivo."
+
+    try:
+        if modo == 'sobrescrever' and os.path.exists(caminho_arquivo):
+            backup = caminho_arquivo + '.bak'
+            shutil.copy2(caminho_arquivo, backup)
+            logging.info(f"Backup criado em '{backup}' antes de sobrescrever '{caminho_arquivo}'.")
+
+        pasta = os.path.dirname(os.path.abspath(caminho_arquivo))
+        if pasta:
+            os.makedirs(pasta, exist_ok=True)
+
+        modo_abertura = 'w' if modo == 'sobrescrever' else 'a'
+        with open(caminho_arquivo, modo_abertura, encoding='utf-8') as arquivo:
+            arquivo.write(conteudo)
+
+        acao = 'sobrescrito' if modo == 'sobrescrever' else 'atualizado (anexado)'
+        logging.info(f"Arquivo '{caminho_arquivo}' {acao} com sucesso ({len(conteudo)} caracteres).")
+        return f"Arquivo '{caminho_arquivo}' {acao} com sucesso ({len(conteudo)} caracteres gravados)."
+
+    except OSError as e:
+        logging.error(f"Erro ao escrever em '{caminho_arquivo}': {e}")
+        return f"Não foi possível escrever o arquivo: {e}"
+
+
+def substituir_trecho_arquivo(caminho_arquivo: str, texto_antigo: str, texto_novo: str) -> str:
+    """
+    Substitui um trecho exato de texto por outro dentro de um arquivo já existente,
+    sem precisar reenviar o arquivo inteiro. texto_antigo precisa aparecer exatamente
+    uma vez no arquivo (a operação é recusada em caso de ambiguidade, pra evitar
+    edições erradas). Ideal para ajustes pontuais — uma regra CSS, uma função, um
+    bloco — em vez de reescrever o arquivo todo. Sempre faz backup (.bak) antes de
+    editar. Requer aprovação manual do usuário.
+
+    Args:
+        caminho_arquivo (str): Caminho do arquivo a editar.
+        texto_antigo (str): Trecho exato de texto a ser substituído (deve casar exatamente uma vez).
+        texto_novo (str): Texto que substituirá o trecho antigo.
+    """
+    caminho_arquivo = caminho_arquivo.strip('"').strip("'")
+
+    try:
+        with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
+            conteudo = arquivo.read()
+    except OSError as e:
+        return f"Não foi possível ler o arquivo: {e}"
+
+    ocorrencias = conteudo.count(texto_antigo)
+    if ocorrencias == 0:
+        return "Erro: o texto_antigo não foi encontrado no arquivo. Nenhuma alteração feita."
+    if ocorrencias > 1:
+        return f"Erro: o texto_antigo aparece {ocorrencias} vezes no arquivo. Forneça um trecho mais específico para evitar ambiguidade."
+
+    if not _confirmar_acao("substituir_trecho_arquivo", {"caminho": caminho_arquivo, "tamanho_novo": len(texto_novo)}):
+        return "Acesso negado: o usuário cancelou a edição do arquivo."
+
+    try:
+        backup = caminho_arquivo + '.bak'
+        shutil.copy2(caminho_arquivo, backup)
+
+        novo_conteudo = conteudo.replace(texto_antigo, texto_novo, 1)
+        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
+            arquivo.write(novo_conteudo)
+
+        logging.info(f"Trecho substituído em '{caminho_arquivo}' (backup em '{backup}').")
+        return f"Trecho substituído com sucesso em '{caminho_arquivo}'. Backup salvo em '{backup}'."
+    except OSError as e:
+        logging.error(f"Erro ao editar '{caminho_arquivo}': {e}")
+        return f"Não foi possível editar o arquivo: {e}"
 
 
 def organizar_downloads(caminho: str = None) -> str:
@@ -641,6 +739,8 @@ FERRAMENTAS_JANUS = (
     abrir_pasta,
     listar_arquivos_pasta,
     ler_arquivo,
+    escrever_arquivo,
+    substituir_trecho_arquivo,
     organizar_downloads,
     listar_janelas_abertas,
     gerenciar_janela,

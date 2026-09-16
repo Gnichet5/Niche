@@ -80,19 +80,4 @@ $('#voice').onclick=()=>{if(!('speechSynthesis' in window)){notice('Este navegad
 const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 $('#dictate').onclick=()=>{if(!Recognition){notice('Ditado indisponível neste navegador. Você pode digitar normalmente.');return}if(listening){recognition.stop();return}recognition=new Recognition();recognition.lang='pt-BR';recognition.interimResults=false;recognition.onstart=()=>{listening=true;$('#dictate').textContent='Parar ditado'};recognition.onend=()=>{listening=false;$('#dictate').textContent='Ditar'};recognition.onerror=e=>notice('Não foi possível usar o microfone: '+e.error);recognition.onresult=e=>{$('#message-input').value+=e.results[0][0].transcript;$('#message-input').focus()};recognition.start()};
 let dark=false;try{const saved=localStorage.getItem('janus-theme');if(saved)dark=saved==='dark'}catch(_){}function theme(){document.body.classList.toggle('dark-mode',dark);delete document.documentElement.dataset.theme;$('#theme').setAttribute('aria-pressed',String(dark));$('#theme').setAttribute('aria-label',dark?'Ativar modo claro':'Ativar modo escuro');$('#theme').textContent=dark?'Modo claro':'Modo escuro'}theme();$('#theme').onclick=()=>{dark=!dark;theme();try{localStorage.setItem('janus-theme',dark?'dark':'light')}catch(_){}};
-
-// Restaurar histórico de conversa ao recarregar a página (F5)
-try {
-  const history = JSON.parse(localStorage.getItem('janus-chat-history') || '[]');
-  if (history.length > 0) {
-    history.forEach(item => {
-      message(item.role, item.text, item.result, false);
-    });
-    const lastUserMsg = history.filter(h => h.role === 'user').pop();
-    if (lastUserMsg) {
-      $('#conversation-label').textContent = lastUserMsg.text.slice(0, 60);
-    }
-  }
-} catch(e) {}
-
 api('status').then(job=>{if(['running','approval'].includes(job.state)){setBusy(true);jobID=job.id;poll()}}).catch(e=>notice(e.message));
