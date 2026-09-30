@@ -3,10 +3,29 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from memory_config import resolver_caminho_memoria
+from memory_config import resolver_caminho_memoria, resolver_pasta_dados
 
 
 class MemoriaTests(unittest.TestCase):
+    def test_dados_usb_exigem_banco_e_nao_criam_destino(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {"JANUS_DATA_DIR": str(Path(tmp) / 'usb')}
+            with self.assertRaises(FileNotFoundError):
+                resolver_pasta_dados(environ=env)
+            self.assertFalse(Path(env['JANUS_DATA_DIR']).exists())
+            env['JANUS_DATA_DIR'] = tmp
+            self.assertEqual(resolver_pasta_dados(environ=env), Path(tmp))
+            with self.assertRaises(FileNotFoundError):
+                resolver_caminho_memoria(environ=env)
+            banco = Path(tmp) / 'memoria_jarvis_v2'
+            banco.mkdir()
+            (banco / 'chroma.sqlite3').touch()
+            self.assertEqual(resolver_caminho_memoria(environ=env), banco)
+
+    def test_dados_relativos_rejeitados(self):
+        with self.assertRaises(ValueError):
+            resolver_pasta_dados(environ={'JANUS_DATA_DIR': 'relativo'})
+
     def test_padrao_preserva_banco_e_ignora_drive_antigo(self):
         base = Path(__file__).resolve().parent
         self.assertEqual(

@@ -24,6 +24,24 @@ dependências Python nem exige Node/npm para executar.
 
 ## Uso
 
+### Armazenamento no USB
+
+Nesta máquina, o `.env` foi configurado com `JANUS_DATA_DIR=D:/Janus` e
+`JANUS_DB_PATH=D:/Janus/memoria_jarvis_v2`. As pastas `memoria_jarvis_v2`,
+`logs_sistema` e `SKILLS` foram copiadas para o USB e os originais foram
+preservados como backup. Novos caminhos relativos usam `D:/Janus`; caminhos
+absolutos solicitados continuam sendo respeitados. Código, interface, ambiente
+Python e chave de API ficam no computador. Os logs atuais continuam no console;
+`logs_sistema` contém os registros legados copiados.
+
+Inicie pelo `main.py`. Se o USB estiver ausente ou faltar o banco, a inicialização
+será interrompida. Feche o Janus antes de ejetar a unidade. Se a letra mudar,
+atualize as duas variáveis no `.env`. As cópias antigas não são sincronizadas.
+
+O ambiente `venv` existente aponta para um Python 3.11 que não conseguiu iniciar
+durante a verificação de 30/09/2026. Ele precisa ser reparado/recriado e receber
+as dependências de `requirements.txt` para testar a conversa real.
+
 - Digite e pressione Enter; Shift+Enter insere uma nova linha.
 - As sugestões apenas preenchem a mensagem. Envie quando quiser.
 - “Imagem” anexa PNG/JPEG/WebP de até 4 MB ao próximo pedido. A interface não

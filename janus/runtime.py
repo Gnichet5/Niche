@@ -71,6 +71,7 @@ def inicializar():
     Mantenha um tom de inteligência artificial avançada e perspicaz. Não use emojis.
     para editar arquivos existentes, use substituir_trecho_arquivo; reserve escrever_arquivo(modo='sobrescrever') para arquivos novos ou reescritas completas pequenas.
     """
+    system_instruction += f"\nPasta padrão para arquivos e pastas do usuário: {Path.cwd()}. Use esse destino quando nenhum outro for solicitado.\n"
 
     # =================================================================
     # MEMÓRIA LOCAL OU NO PEN DRIVE (SEM SINCRONIZAÇÃO)
